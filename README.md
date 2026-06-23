@@ -73,8 +73,9 @@ chrome-extension/
   content.js
   content-main.js
   icons/
-chrome_store_promo.png
-extension_screenshot.png
+assets/
+UseDemo.mp4
+BiliSub.zip
 scratch/zip_extension.py
 ```
 
