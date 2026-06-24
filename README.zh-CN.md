@@ -63,20 +63,6 @@ python scratch/zip_extension.py
 
 这样页面访问、扩展通信、接口规则和界面逻辑不会写死在单一逻辑里，后续维护和扩展更稳。
 
-## Chrome Web Store 中文资料草案
-
-简短描述：
-
-> 从当前 Bilibili 视频页面导出 CC 字幕，支持 TXT 和 SRT 格式。
-
-详细描述：
-
-> BiliSub 可以帮助你保存正在观看的 Bilibili 视频 CC 字幕。打开 Bilibili 视频页面，点击扩展图标，选择字幕轨道，然后下载为 TXT 或 SRT 文件。扩展只在 Bilibili 视频页面及读取字幕所需的接口/CDN 上运行。
-
-隐私说明：
-
-> BiliSub 不收集、不出售、也不会向第三方服务传输个人数据。扩展只读取当前 Bilibili 视频页和字幕数据，并在 Chrome 本地存储中短期保存字幕元数据，以提高字幕提取成功率。
-
 ## 文件结构
 
 ```text
