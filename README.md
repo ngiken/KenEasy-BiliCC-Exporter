@@ -50,20 +50,6 @@ python scratch/zip_extension.py
 
 The generated `BiliSub.zip` is the upload package.
 
-## Store Listing Draft
-
-Short description:
-
-> Export Bilibili CC subtitles from the current video page as TXT or SRT files.
-
-Detailed description:
-
-> BiliSub helps you save available Bilibili CC subtitles from the video you are watching. Open a Bilibili video page, click the extension, choose a subtitle track, and download it as TXT or SRT. The extension only runs on Bilibili pages and subtitle/CDN endpoints needed to read subtitle data.
-
-Privacy note:
-
-> BiliSub does not collect, sell, or transmit personal data to any third-party service. It reads the active Bilibili video page and stores short-lived subtitle metadata locally in Chrome storage to improve reliability.
-
 ## Files
 
 ```text
