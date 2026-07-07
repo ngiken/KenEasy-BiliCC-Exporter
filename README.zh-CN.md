@@ -4,6 +4,8 @@
 
 BiliSub 是一个 Chrome 扩展，用来把 Bilibili 当前视频页里的 CC 字幕导出为 `TXT` 或 `SRT` 文件。
 
+当前版本：`1.0.1`
+
 ![BiliSub 预览图](assets/github-preview.png)
 
 ## 演示
@@ -51,6 +53,10 @@ python scratch/zip_extension.py
 ```
 
 生成的 `BiliSub.zip` 就是 Chrome Web Store 上传包。
+
+## 更新记录
+
+版本历史和发布包说明见 [CHANGELOG.md](CHANGELOG.md)。
 
 ## 架构说明
 
