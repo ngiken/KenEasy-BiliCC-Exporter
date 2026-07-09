@@ -6,7 +6,7 @@ from PIL import Image, ImageDraw, ImageFont
 BRAND_NAME = "KenEasy BiliCC Exporter"
 BRAND_SUBTITLE = "Bilibili / B站 CC subtitles to TXT / SRT"
 ZH_SUBTITLE = "B站 CC 字幕导出工具"
-VERSION = "v1.0.3"
+VERSION = "v1.0.4"
 
 ROOT = Path(__file__).resolve().parents[1]
 ASSETS = ROOT / "assets"

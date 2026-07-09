@@ -60,6 +60,9 @@
   "loginRequired": {
     "message": "这个视频的字幕需要登录 Bilibili 后才能读取。请在当前浏览器登录后重试。"
   },
+  "unknownLanguage": {
+    "message": "字幕"
+  },
   "errorPrefix": {
     "message": "处理失败："
   },

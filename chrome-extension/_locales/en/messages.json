@@ -60,6 +60,9 @@
   "loginRequired": {
     "message": "This video's subtitles require a Bilibili sign-in. Sign in with the current browser and try again."
   },
+  "unknownLanguage": {
+    "message": "Subtitle"
+  },
   "errorPrefix": {
     "message": "Failed: "
   },

@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.4 - 2026-07-09
+
+Filename improvement release.
+
+- Builds downloaded subtitle filenames from both the video title and subtitle language.
+- Uses the human-readable subtitle language name when available, then falls back to the language code.
+- Keeps video title and language as separate filename parts so long titles do not remove the language label.
+
 ## 1.0.3 - 2026-07-09
 
 Brand rename release.

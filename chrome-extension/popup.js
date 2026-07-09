@@ -23,6 +23,7 @@ const FALLBACK_TEXT = Object.freeze({
   subtitleCount: '{count} subtitles',
   noSubtitle: 'This video has no downloadable CC subtitles yet. Check whether subtitles are visible on the page, or sign in to Bilibili and try again.',
   loginRequired: "This video's subtitles require a Bilibili sign-in. Sign in with the current browser and try again.",
+  unknownLanguage: 'Subtitle',
   errorPrefix: 'Failed: ',
   downloaded: 'Saved',
   previewLabel: 'Subtitle preview',
@@ -295,15 +296,15 @@ function createDownloadButton(track, index, format) {
   button.type = 'button';
   button.textContent = format.toUpperCase();
   button.addEventListener('click', () => {
-    triggerDownload(track, format, appState.video?.title || 'subtitle');
+    triggerDownload(track, format, appState.video);
     flashButton(button);
   });
   return button;
 }
 
-function triggerDownload(track, format, title) {
+function triggerDownload(track, format, video) {
   const content = format === 'txt' ? toPlainText(track.entries) : toSrt(track.entries);
-  const filename = `${safeFilename(title)}_${safeFilename(track.lan || 'subtitle')}.${format}`;
+  const filename = buildSubtitleFilename(video, track, format);
   const blob = new Blob([`\uFEFF${content}`], { type: 'text/plain;charset=utf-8' });
   const reader = new FileReader();
 
@@ -314,6 +315,16 @@ function triggerDownload(track, format, title) {
     });
   };
   reader.readAsDataURL(blob);
+}
+
+function buildSubtitleFilename(video, track, format) {
+  const title = video?.title || t('unknownTitle');
+  const language = getTrackLanguageLabel(track);
+  return `${safeFilenamePart(title, 96)} - ${safeFilenamePart(language, 40)}.${format}`;
+}
+
+function getTrackLanguageLabel(track) {
+  return track?.lanDoc || track?.lan || t('unknownLanguage');
 }
 
 function toPlainText(entries) {
@@ -416,7 +427,15 @@ function cleanTitle(title) {
 }
 
 function safeFilename(name) {
-  return (name || 'subtitle').replace(/[\\/:*?"<>|]/g, '_').slice(0, 80);
+  return safeFilenamePart(name, 80);
+}
+
+function safeFilenamePart(name, maxLength) {
+  const cleaned = String(name || 'subtitle')
+    .replace(/[\\/:*?"<>|]/g, '_')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return (cleaned || 'subtitle').slice(0, maxLength);
 }
 
 function pad(value, length) {
@@ -461,7 +480,7 @@ function getExtensionVersion() {
   if (typeof chrome !== 'undefined' && chrome.runtime?.getManifest) {
     return chrome.runtime.getManifest().version;
   }
-  return '1.0.3';
+  return '1.0.4';
 }
 
 function t(key, substitutions = []) {
