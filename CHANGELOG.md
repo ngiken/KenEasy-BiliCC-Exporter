@@ -7,6 +7,7 @@ Brand rename release.
 - Renames the extension to `KenEasy BiliCC Exporter`.
 - Moves runtime branding, message namespaces, and subtitle-cache prefixes into shared brand configuration.
 - Refreshes documentation, package naming, and project preview assets for the new name.
+- Clarifies local installation with a manual-install package because Chrome blocks direct GitHub CRX installs.
 
 ## 1.0.2 - 2026-07-08
 

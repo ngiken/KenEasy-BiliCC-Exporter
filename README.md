@@ -45,11 +45,15 @@ Full usage video: [UseDemo.mp4](UseDemo.mp4)
 
 ## Install Locally
 
-1. Open `chrome://extensions/`.
-2. Enable Developer mode.
-3. Click "Load unpacked".
-4. Select the `chrome-extension` folder.
-5. Open a Bilibili video URL like `https://www.bilibili.com/video/BV...`, then click the KenEasy BiliCC Exporter icon.
+Chrome does not install GitHub-downloaded `.crx` files directly, and it cannot install a `.zip` by drag-and-drop.
+
+1. Download `KenEasy-BiliCC-Exporter-manual-install.zip` from the latest release.
+2. Extract the zip file.
+3. Open `chrome://extensions/`.
+4. Enable Developer mode.
+5. Click "Load unpacked".
+6. Select the extracted `KenEasy-BiliCC-Exporter` folder.
+7. Open a Bilibili video URL like `https://www.bilibili.com/video/BV...`, then click the KenEasy BiliCC Exporter icon.
 
 ## Package
 
@@ -59,10 +63,10 @@ Zip the contents of the `chrome-extension` folder, not the parent folder:
 python scratch/zip_extension.py
 ```
 
-The generated package is:
+The Chrome Web Store upload package is:
 
 ```text
-KenEasy-BiliCC-Exporter.zip
+KenEasy-BiliCC-Exporter-store.zip
 ```
 
 ## Architecture
@@ -102,8 +106,8 @@ chrome-extension/
   icons/
 assets/
 UseDemo.mp4
-KenEasy-BiliCC-Exporter.zip
-KenEasy-BiliCC-Exporter.crx
+KenEasy-BiliCC-Exporter-store.zip
+KenEasy-BiliCC-Exporter-manual-install.zip
 scratch/zip_extension.py
 ```
 

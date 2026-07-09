@@ -35,4 +35,4 @@ def zip_extension(src_dir, dest_zip):
 
 if __name__ == "__main__":
     project_root = Path(__file__).resolve().parents[1]
-    zip_extension(project_root / "chrome-extension", project_root / "KenEasy-BiliCC-Exporter.zip")
+    zip_extension(project_root / "chrome-extension", project_root / "KenEasy-BiliCC-Exporter-store.zip")
