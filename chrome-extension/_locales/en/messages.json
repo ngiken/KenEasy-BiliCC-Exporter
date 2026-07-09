@@ -1,6 +1,6 @@
 {
   "extensionName": {
-    "message": "BiliSub"
+    "message": "KenEasy BiliCC Exporter"
   },
   "extensionDescription": {
     "message": "Download Bilibili CC subtitles as TXT or SRT."
@@ -12,7 +12,7 @@
     "message": "Reading the current video..."
   },
   "notBili": {
-    "message": "Open a bilibili.com video page before using BiliSub."
+    "message": "Open a bilibili.com video page before using KenEasy BiliCC Exporter."
   },
   "unknownTitle": {
     "message": "Untitled video"

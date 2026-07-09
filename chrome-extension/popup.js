@@ -3,11 +3,14 @@ const appState = {
   subtitles: null,
 };
 
+const BRAND_CONFIG = globalThis.KENEASY_BILICC_CONFIG;
+const STORAGE_PREFIX = BRAND_CONFIG.storage.subtitleHintPrefix;
+
 const FALLBACK_TEXT = Object.freeze({
-  extensionName: 'BiliSub',
-  headerSubtitle: 'Bilibili CC subtitle exporter',
+  extensionName: BRAND_CONFIG.appName,
+  headerSubtitle: BRAND_CONFIG.headerSubtitle,
   loading: 'Reading the current video...',
-  notBili: 'Open a bilibili.com video page before using BiliSub.',
+  notBili: `Open a bilibili.com video page before using ${BRAND_CONFIG.appName}.`,
   unknownTitle: 'Untitled video',
   unknownDuration: '--:--',
   fetchButton: 'Extract subtitles',
@@ -106,7 +109,7 @@ async function getVideoInfoFromTab(tab) {
     const response = await chrome.tabs.sendMessage(tab.id, { type: 'GET_VIDEO_INFO' });
     if (response?.success && response.data) return response.data;
   } catch (error) {
-    console.warn('[BiliSub] Unable to read page state, falling back to URL.', error);
+    console.warn(`${BRAND_CONFIG.logPrefix} Unable to read page state, falling back to URL.`, error);
   }
 
   const match = tab.url.match(/BV[0-9A-Za-z]{10}/);
@@ -135,7 +138,7 @@ async function hydrateVideoDetail(bvid) {
     };
     populateVideoCard(appState.video);
   } catch (error) {
-    console.warn('[BiliSub] Video detail fallback failed.', error);
+    console.warn(`${BRAND_CONFIG.logPrefix} Video detail fallback failed.`, error);
   }
 }
 
@@ -160,7 +163,7 @@ async function fetchSubtitles() {
     let subtitleData = null;
 
     updateProgress(25, t('progressVideo'));
-    setStep(1, '视频信息已读取', 'done');
+    setStep(1, t('videoInfoDone'), 'done');
     setStep(2, t('progressTracks'), 'active');
 
     if (stored?.subtitles?.length) {
@@ -217,7 +220,7 @@ async function buildTracksFromStoredHint(stored) {
         entries: await downloadSubtitleJson(subtitle.subtitle_url),
       });
     } catch (error) {
-      console.warn('[BiliSub] Failed to use cached subtitle hint.', error);
+      console.warn(`${BRAND_CONFIG.logPrefix} Failed to use cached subtitle hint.`, error);
     }
   }
   return { hasSubtitles: tracks.length > 0, needLogin: false, tracks };
@@ -228,12 +231,12 @@ async function getStoredSubtitles(bvid, cid) {
     chrome.storage.local.get(null, (items) => {
       if (chrome.runtime.lastError) return resolve(null);
 
-      if (cid && items[`bilisub_${bvid}_${cid}`]) {
-        return resolve(items[`bilisub_${bvid}_${cid}`]);
+      if (cid && items[`${STORAGE_PREFIX}${bvid}_${cid}`]) {
+        return resolve(items[`${STORAGE_PREFIX}${bvid}_${cid}`]);
       }
 
       const keys = Object.keys(items)
-        .filter((key) => key.startsWith(`bilisub_${bvid}_`))
+        .filter((key) => key.startsWith(`${STORAGE_PREFIX}${bvid}_`))
         .sort((a, b) => (items[b].timestamp || 0) - (items[a].timestamp || 0));
       return resolve(keys.length ? items[keys[0]] : null);
     });
@@ -450,8 +453,15 @@ function applyStaticText() {
   document.querySelectorAll('.btn-back').forEach((button) => {
     button.textContent = t('backButton');
   });
-  setText('footerVersion', `${t('extensionName')} v1.0.0`);
+  setText('footerVersion', `${t('extensionName')} v${getExtensionVersion()}`);
   setText('footerFormats', t('footerFormats'));
+}
+
+function getExtensionVersion() {
+  if (typeof chrome !== 'undefined' && chrome.runtime?.getManifest) {
+    return chrome.runtime.getManifest().version;
+  }
+  return '1.0.3';
 }
 
 function t(key, substitutions = []) {

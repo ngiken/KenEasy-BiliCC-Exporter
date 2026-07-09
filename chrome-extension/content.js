@@ -1,11 +1,7 @@
 (function () {
-  const MESSAGE_TYPES = Object.freeze({
-    fetchRequest: 'BILISUB_FETCH_REQUEST',
-    fetchResponse: 'BILISUB_FETCH_RESPONSE',
-    infoRequest: 'BILISUB_INFO_REQUEST',
-    infoResponse: 'BILISUB_INFO_RESPONSE',
-    subtitleIntercepted: 'BILISUB_SUBTITLE_INTERCEPTED',
-  });
+  const BRAND_CONFIG = window.KENEASY_BILICC_CONFIG;
+  const MESSAGE_TYPES = BRAND_CONFIG.protocol;
+  const STORAGE_PREFIX = BRAND_CONFIG.storage.subtitleHintPrefix;
 
   const pendingRequests = new Map();
 
@@ -68,7 +64,7 @@
       return;
     }
 
-    const key = `bilisub_${bvid}_${cid}`;
+    const key = `${STORAGE_PREFIX}${bvid}_${cid}`;
     chrome.storage.local.set({
       [key]: {
         bvid,
@@ -88,7 +84,7 @@
       const maxAgeMs = 24 * 60 * 60 * 1000;
       const now = Date.now();
       const expiredKeys = Object.keys(items).filter((key) => (
-        key.startsWith('bilisub_') &&
+        key.startsWith(STORAGE_PREFIX) &&
         items[key]?.timestamp &&
         now - items[key].timestamp > maxAgeMs
       ));

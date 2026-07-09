@@ -1,18 +1,18 @@
 {
   "extensionName": {
-    "message": "BiliSub"
+    "message": "KenEasy BiliCC Exporter"
   },
   "extensionDescription": {
-    "message": "下载 Bilibili CC 字幕，支持 TXT 和 SRT 格式。"
+    "message": "下载 Bilibili / B站 CC 字幕，支持 TXT 和 SRT 格式。"
   },
   "headerSubtitle": {
-    "message": "Bilibili CC 字幕导出工具"
+    "message": "B站 CC 字幕导出工具"
   },
   "loading": {
     "message": "正在读取当前视频..."
   },
   "notBili": {
-    "message": "请打开 bilibili.com 的视频页面后再使用 BiliSub。"
+    "message": "请打开 bilibili.com 的视频页面后再使用 KenEasy BiliCC Exporter。"
   },
   "unknownTitle": {
     "message": "未命名视频"

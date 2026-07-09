@@ -1,3 +1,6 @@
+importScripts('brand-config.js');
+
+const BRAND_CONFIG = globalThis.KENEASY_BILICC_CONFIG;
 const API_BASE = 'https://api.bilibili.com';
 const PAGE_REFERER = 'https://www.bilibili.com';
 const DESKTOP_UA =
@@ -164,7 +167,7 @@ async function fetchViaPage(tabId, url) {
     if (response?.success) return response.data;
     return null;
   } catch (error) {
-    console.warn('[BiliSub] Page-context request failed, using service worker fallback.', error);
+    console.warn(`${BRAND_CONFIG.logPrefix} Page-context request failed, using service worker fallback.`, error);
     return null;
   }
 }
@@ -174,7 +177,7 @@ async function getSubtitleList(aid, cid, tabId) {
   try {
     params = await signWbi({ aid, cid });
   } catch (error) {
-    console.warn('[BiliSub] WBI signing failed, retrying with unsigned params.', error);
+    console.warn(`${BRAND_CONFIG.logPrefix} WBI signing failed, retrying with unsigned params.`, error);
     params = { aid, cid, wts: Math.floor(Date.now() / 1000) };
   }
 
@@ -221,7 +224,7 @@ async function handleFetchSubtitles({ bvid, aid, cid, tabId }) {
         entries: await downloadSubtitleJson(subtitle.subtitle_url),
       });
     } catch (error) {
-      console.warn('[BiliSub] Subtitle JSON download failed.', subtitle.lan, error);
+      console.warn(`${BRAND_CONFIG.logPrefix} Subtitle JSON download failed.`, subtitle.lan, error);
     }
   }
 

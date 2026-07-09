@@ -1,38 +1,47 @@
-# BiliSub
+<div align="center">
+  <img src="assets/github-preview.png" alt="KenEasy BiliCC Exporter" width="100%">
 
-[中文](README.zh-CN.md) | English
+  <h1>KenEasy BiliCC Exporter</h1>
 
-BiliSub is a Chrome extension for exporting Bilibili CC subtitles as `TXT` or `SRT` files.
+  <p>
+    Export Bilibili CC subtitles from the current video page as <code>TXT</code> or <code>SRT</code>.
+  </p>
 
-Current version: `1.0.1`
+  <p>
+    <a href="README.zh-CN.md">中文</a>
+    ·
+    English
+    ·
+    <a href="CHANGELOG.md">Changelog</a>
+  </p>
 
-![BiliSub preview](assets/github-preview.png)
+  <p>
+    <img alt="Version" src="https://img.shields.io/badge/version-1.0.3-fb7299">
+    <img alt="Manifest" src="https://img.shields.io/badge/manifest-v3-00aeec">
+    <img alt="License" src="https://img.shields.io/badge/license-MIT-27c499">
+  </p>
+</div>
+
+## Overview
+
+KenEasy BiliCC Exporter is a small Chrome extension for Bilibili video pages. It detects the active `BV` video, finds available CC subtitle tracks, and saves them as plain text or standard SRT files.
+
+![KenEasy BiliCC Exporter popup demo](assets/popup-demo.png)
+
+## Highlights
+
+| Capability | Details |
+| --- | --- |
+| Bilibili page detection | Reads the active video page and resolves `BV`, `aid`, and `cid`. |
+| Subtitle discovery | Uses page-observed subtitle data first, then falls back to Bilibili web APIs. |
+| Export formats | Saves subtitle tracks as `TXT` or `SRT` with UTF-8 BOM for Windows compatibility. |
+| Store-ready footprint | Keeps the extension dependency-free and small for Chrome Web Store packaging. |
 
 ## Demo
 
-![BiliSub popup demo](assets/popup-demo.png)
-
-![BiliSub usage demo](assets/use-demo.gif)
+![KenEasy BiliCC Exporter usage demo](assets/use-demo.gif)
 
 Full usage video: [UseDemo.mp4](UseDemo.mp4)
-
-## Features
-
-- Detects the active Bilibili video page and reads the current `BV`, `aid`, and `cid`.
-- Finds available CC subtitle tracks through page interception first, then falls back to Bilibili web APIs.
-- Downloads subtitles as plain text or SRT with UTF-8 BOM for better Windows compatibility.
-- Keeps the extension small and dependency-free for Chrome Web Store submission.
-
-## Architecture
-
-The extension is intentionally layered:
-
-- `content-main.js` runs in the page world, observes Bilibili player/subtitle responses, and can perform same-page fetches with the user's Bilibili session.
-- `content.js` runs in the isolated extension world, bridges popup/background messages, and caches subtitle hints for a short time.
-- `background.js` owns Bilibili API calls, WBI signing, subtitle JSON loading, and error normalization.
-- `popup.js` owns UI state, cached-subtitle preference, format conversion, and downloads.
-
-This keeps page access, extension messaging, API rules, and UI behavior decoupled.
 
 ## Install Locally
 
@@ -40,9 +49,9 @@ This keeps page access, extension messaging, API rules, and UI behavior decouple
 2. Enable Developer mode.
 3. Click "Load unpacked".
 4. Select the `chrome-extension` folder.
-5. Open a Bilibili video URL like `https://www.bilibili.com/video/BV...`, then click the BiliSub extension icon.
+5. Open a Bilibili video URL like `https://www.bilibili.com/video/BV...`, then click the KenEasy BiliCC Exporter icon.
 
-## Package For Chrome Web Store
+## Package
 
 Zip the contents of the `chrome-extension` folder, not the parent folder:
 
@@ -50,17 +59,41 @@ Zip the contents of the `chrome-extension` folder, not the parent folder:
 python scratch/zip_extension.py
 ```
 
-The generated `BiliSub.zip` is the upload package.
+The generated package is:
 
-## Release Notes
+```text
+KenEasy-BiliCC-Exporter.zip
+```
 
-See [CHANGELOG.md](CHANGELOG.md) for version history and package notes.
+## Architecture
 
-## Files
+The extension is intentionally layered, decoupled, rule-based, and data-driven.
+
+```text
+brand-config.js
+  Shared product naming, message namespaces, log prefixes, and storage prefixes.
+
+content-main.js
+  Runs in the page world, observes Bilibili player/subtitle responses, and performs same-page fetches.
+
+content.js
+  Runs in the isolated extension world, bridges popup/background messages, and caches subtitle hints.
+
+background.js
+  Owns Bilibili API calls, WBI signing, subtitle JSON loading, and error normalization.
+
+popup.js
+  Owns UI state, cache preference, TXT/SRT conversion, preview, and downloads.
+```
+
+This keeps page access, extension messaging, API rules, and UI behavior separated so the project can stay maintainable as it grows.
+
+## Project Files
 
 ```text
 chrome-extension/
   manifest.json
+  brand-config.js
   popup.html
   popup.js
   background.js
@@ -69,7 +102,8 @@ chrome-extension/
   icons/
 assets/
 UseDemo.mp4
-BiliSub.zip
+KenEasy-BiliCC-Exporter.zip
+KenEasy-BiliCC-Exporter.crx
 scratch/zip_extension.py
 ```
 

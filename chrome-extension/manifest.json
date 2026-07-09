@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "__MSG_extensionName__",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "__MSG_extensionDescription__",
   "default_locale": "en",
   "icons": {
@@ -36,6 +36,7 @@
         "https://*.bilibili.com/*"
       ],
       "js": [
+        "brand-config.js",
         "content.js"
       ],
       "run_at": "document_idle"
@@ -45,6 +46,7 @@
         "https://*.bilibili.com/*"
       ],
       "js": [
+        "brand-config.js",
         "content-main.js"
       ],
       "run_at": "document_start",

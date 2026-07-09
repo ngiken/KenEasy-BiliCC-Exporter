@@ -1,12 +1,7 @@
 (function () {
   const rawFetch = window.fetch;
-  const MESSAGE_TYPES = Object.freeze({
-    fetchRequest: 'BILISUB_FETCH_REQUEST',
-    fetchResponse: 'BILISUB_FETCH_RESPONSE',
-    infoRequest: 'BILISUB_INFO_REQUEST',
-    infoResponse: 'BILISUB_INFO_RESPONSE',
-    subtitleIntercepted: 'BILISUB_SUBTITLE_INTERCEPTED',
-  });
+  const BRAND_CONFIG = window.KENEASY_BILICC_CONFIG;
+  const MESSAGE_TYPES = BRAND_CONFIG.protocol;
 
   function getRequestUrl(input) {
     if (typeof input === 'string') return input;
@@ -57,7 +52,7 @@
     if (shouldInspect) {
       response.clone().json()
         .then((body) => publishSubtitlePayload(url, body))
-        .catch((error) => console.warn('[BiliSub] Unable to inspect page response.', error));
+        .catch((error) => console.warn(`${BRAND_CONFIG.logPrefix} Unable to inspect page response.`, error));
     }
 
     return response;
