@@ -78,6 +78,12 @@
   "footerFormats": {
     "message": "TXT / SRT"
   },
+  "footerGithub": {
+    "message": "GitHub"
+  },
+  "footerStar": {
+    "message": "欢迎 Star ★"
+  },
   "currentPageNotVideo": {
     "message": "当前页面不是 Bilibili 视频页。"
   },

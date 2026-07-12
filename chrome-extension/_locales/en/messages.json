@@ -78,6 +78,12 @@
   "footerFormats": {
     "message": "TXT / SRT"
   },
+  "footerGithub": {
+    "message": "GitHub"
+  },
+  "footerStar": {
+    "message": "Star ★"
+  },
   "currentPageNotVideo": {
     "message": "The current page is not a Bilibili video page."
   },

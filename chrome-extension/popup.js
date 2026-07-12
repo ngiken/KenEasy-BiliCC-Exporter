@@ -29,6 +29,8 @@ const FALLBACK_TEXT = Object.freeze({
   previewLabel: 'Subtitle preview',
   backButton: 'Back',
   footerFormats: 'TXT / SRT',
+  footerGithub: 'GitHub',
+  footerStar: 'Star ★',
   currentPageNotVideo: 'The current page is not a Bilibili video page.',
   backgroundNoResponse: 'The extension background did not return a result. Reopen the extension and try again.',
   subtitleApiFailed: 'The subtitle API request failed.',
@@ -473,7 +475,8 @@ function applyStaticText() {
     button.textContent = t('backButton');
   });
   setText('footerVersion', `${t('extensionName')} v${getExtensionVersion()}`);
-  setText('footerFormats', t('footerFormats'));
+  setText('footerGithub', t('footerGithub'));
+  setText('footerStar', t('footerStar'));
 }
 
 function getExtensionVersion() {
