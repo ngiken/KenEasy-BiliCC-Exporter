@@ -7,15 +7,49 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
 
+# Never pack secrets, editor junk, maps, or OS files into store/manual zips.
+SKIP_SUFFIXES = (
+    ".tmp",
+    "~",
+    ".pem",
+    ".p12",
+    ".key",
+    ".pfx",
+    ".map",
+    ".log",
+    ".bak",
+    ".DS_Store",
+)
+SKIP_NAMES = {
+    "thumbs.db",
+    "desktop.ini",
+    ".ds_store",
+    ".env",
+}
+
+
+def should_skip(file_path: Path) -> bool:
+    name = file_path.name
+    lower = name.lower()
+    if name.startswith("."):
+        return True
+    if lower in SKIP_NAMES:
+        return True
+    if any(lower.endswith(suffix) for suffix in SKIP_SUFFIXES):
+        return True
+    # Defensive: never ship anything that looks like a private key file.
+    if "secret" in lower or "credential" in lower:
+        return True
+    return False
+
+
 def iter_extension_files(src_dir):
     for file_path in src_dir.rglob("*"):
         if not file_path.is_file():
             continue
-
-        name = file_path.name
-        if name.startswith(".") or name.endswith(".tmp") or name.endswith("~"):
+        if should_skip(file_path):
+            print(f"  Skipped: {file_path.relative_to(src_dir).as_posix()}")
             continue
-
         yield file_path
 
 

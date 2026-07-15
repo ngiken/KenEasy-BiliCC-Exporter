@@ -1,0 +1,18 @@
+# Normalize text; keep binaries untouched
+* text=auto eol=lf
+
+*.md text eol=lf
+*.js text eol=lf
+*.json text eol=lf
+*.html text eol=lf
+*.py text eol=lf
+*.css text eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.mp4 binary
+*.zip binary
+*.pem binary
