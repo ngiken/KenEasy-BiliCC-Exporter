@@ -1,12 +1,27 @@
-﻿importScripts(
+importScripts(
   'brand-config.js',
   'media-download-config.js',
+  'media-cdn-rules.js',
   'media-fmp4-remux.js',
   'media-stream-resolver.js',
   'media-download-service.js',
   'update-config.js',
   'update-service.js',
 );
+
+// Install bilibili CDN Referer rewrite rules as early as possible.
+try {
+  globalThis.KenEasyMediaCdnRules?.ensureCdnHeaderRules?.();
+} catch (error) {
+  console.warn('[KenEasy BiliCC] Failed to install CDN header rules on boot.', error);
+}
+
+chrome.runtime.onInstalled.addListener(() => {
+  globalThis.KenEasyMediaCdnRules?.ensureCdnHeaderRules?.();
+});
+chrome.runtime.onStartup?.addListener?.(() => {
+  globalThis.KenEasyMediaCdnRules?.ensureCdnHeaderRules?.();
+});
 
 const BRAND_CONFIG = globalThis.KENEASY_BILICC_CONFIG;
 const API_BASE = 'https://api.bilibili.com';

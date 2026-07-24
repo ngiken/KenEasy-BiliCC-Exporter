@@ -11,6 +11,8 @@
     protocol: Object.freeze({
       fetchRequest: 'KENEASY_BILICC_FETCH_REQUEST',
       fetchResponse: 'KENEASY_BILICC_FETCH_RESPONSE',
+      binaryFetchRequest: 'KENEASY_BILICC_BINARY_FETCH_REQUEST',
+      binaryFetchResponse: 'KENEASY_BILICC_BINARY_FETCH_RESPONSE',
       infoRequest: 'KENEASY_BILICC_INFO_REQUEST',
       infoResponse: 'KENEASY_BILICC_INFO_RESPONSE',
       subtitleIntercepted: 'KENEASY_BILICC_SUBTITLE_INTERCEPTED',

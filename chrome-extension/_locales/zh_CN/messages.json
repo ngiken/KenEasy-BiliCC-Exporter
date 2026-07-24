@@ -243,7 +243,7 @@
     "message": "更新"
   },
   "updateChecking": {
-    "message": "检查中..."
+    "message": "正在检查更新..."
   },
   "updateAvailable": {
     "message": "发现新版本：v$VERSION$",
@@ -254,7 +254,7 @@
     }
   },
   "updateLatest": {
-    "message": "已是最新版（v$VERSION$）",
+    "message": "已是最新版本（v$VERSION$）",
     "placeholders": {
       "version": {
         "content": "$1"

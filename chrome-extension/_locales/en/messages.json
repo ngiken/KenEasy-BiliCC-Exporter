@@ -243,7 +243,7 @@
     "message": "Update"
   },
   "updateChecking": {
-    "message": "Checking..."
+    "message": "Checking for updates..."
   },
   "updateAvailable": {
     "message": "Update available: v$VERSION$",
@@ -254,7 +254,7 @@
     }
   },
   "updateLatest": {
-    "message": "Already up to date (v$VERSION$)",
+    "message": "Already the latest version (v$VERSION$)",
     "placeholders": {
       "version": {
         "content": "$1"

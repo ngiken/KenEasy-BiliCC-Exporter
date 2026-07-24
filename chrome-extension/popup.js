@@ -85,9 +85,9 @@ const FALLBACK_TEXT = Object.freeze({
   downloadAudioOnly: 'Audio only',
   downloadVideoOnly: 'Video only',
   updateButton: 'Update',
-  updateChecking: 'Checking...',
+  updateChecking: 'Checking for updates...',
   updateAvailable: 'Update available: v{version}',
-  updateLatest: 'Already up to date (v{version})',
+  updateLatest: 'Already the latest version (v{version})',
   updateDownloading: 'Downloading latest package...',
   updateDownloaded: 'Latest package downloaded. Follow the reload steps.',
   updateFailed: 'Update check failed.',
@@ -534,11 +534,16 @@ async function handleUpdateButtonClick() {
     await applyLatestUpdate();
     return;
   }
+  showStatusToast(t('updateChecking'), 'info');
   const result = await checkForUpdates({ force: true, silent: false });
   if (result?.hasUpdate) {
     setUpdateStatus(t('updateAvailable', [result.latestVersion]), true);
   } else if (result) {
-    setUpdateStatus(t('updateLatest', [result.currentVersion || getExtensionVersion()]), false);
+    // Explicit "already latest" feedback is required by product UX.
+    showStatusToast(t('updateLatest', [result.currentVersion || getExtensionVersion()]), 'success');
+    setUpdateStatus(t('updateLatest', [result.currentVersion || getExtensionVersion()]), true);
+  } else {
+    showStatusToast(t('updateFailed'), 'error');
   }
 }
 
@@ -596,15 +601,29 @@ async function applyLatestUpdate() {
 }
 
 function setUpdateStatus(message, isSuccess) {
-  // Prefer media hint when ready; otherwise keep error box free unless needed.
+  showStatusToast(message, isSuccess ? 'success' : 'error');
   const hint = document.getElementById('mediaHint');
   if (hint && !document.getElementById('stateReady')?.hidden) {
     hint.textContent = message;
     hint.style.color = isSuccess ? 'var(--green)' : 'var(--danger)';
-    return;
   }
   const button = document.getElementById('footerUpdateBtn');
   if (button) button.title = message;
+}
+
+function showStatusToast(message, kind = 'info') {
+  const toast = document.getElementById('statusToast');
+  if (!toast) return;
+  toast.hidden = false;
+  toast.textContent = message;
+  toast.classList.add('is-visible');
+  toast.classList.remove('is-success', 'is-error', 'is-info');
+  toast.classList.add(kind === 'success' ? 'is-success' : kind === 'error' ? 'is-error' : 'is-info');
+  clearTimeout(showStatusToast._timer);
+  showStatusToast._timer = setTimeout(() => {
+    toast.classList.remove('is-visible');
+    toast.hidden = true;
+  }, 3200);
 }
 
 async function loadMediaOptions(video) {
@@ -923,7 +942,7 @@ function getExtensionVersion() {
   if (typeof chrome !== 'undefined' && chrome.runtime?.getManifest) {
     return chrome.runtime.getManifest().version;
   }
-  return '1.3.0';
+  return '1.3.1';
 }
 
 function t(key, substitutions = []) {

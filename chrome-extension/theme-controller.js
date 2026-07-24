@@ -23,7 +23,13 @@
     const theme = normalizeTheme(value);
     document.documentElement.setAttribute('data-theme', theme);
     document.documentElement.style.colorScheme = theme;
+    document.body?.setAttribute('data-theme', theme);
     document.querySelector('meta[name="theme-color"]')?.setAttribute('content', themeRules.themeColors[theme]);
+    // Keep system form controls aligned with our explicit theme tokens.
+    if (document.body) {
+      document.body.style.color = theme === 'dark' ? '#f5f5f7' : '#1d1d1f';
+      document.body.style.backgroundColor = theme === 'dark' ? '#09090b' : '#f5f5f7';
+    }
     syncControl();
     return theme;
   }

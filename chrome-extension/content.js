@@ -8,7 +8,11 @@
   window.addEventListener('message', (event) => {
     if (!event.data) return;
 
-    if (event.data.type === MESSAGE_TYPES.fetchResponse || event.data.type === MESSAGE_TYPES.infoResponse) {
+    if (
+      event.data.type === MESSAGE_TYPES.fetchResponse ||
+      event.data.type === MESSAGE_TYPES.infoResponse ||
+      event.data.type === MESSAGE_TYPES.binaryFetchResponse
+    ) {
       resolvePendingRequest(event.data);
       return;
     }
@@ -39,6 +43,13 @@
       return true;
     }
 
+    if (request.type === 'FETCH_BINARY_FROM_PAGE') {
+      fetchBinaryFromPageContext(request.url)
+        .then((data) => sendResponse({ success: true, base64: data.base64, byteLength: data.byteLength }))
+        .catch((error) => sendResponse({ success: false, error: error.message }));
+      return true;
+    }
+
     return false;
   });
 
@@ -48,7 +59,10 @@
     pendingRequests.delete(message.requestId);
 
     if (message.success) {
-      pending.resolve(message.type === MESSAGE_TYPES.infoResponse ? message.state : message.data);
+      if (message.type === MESSAGE_TYPES.infoResponse) pending.resolve(message.state);
+      else if (message.type === MESSAGE_TYPES.binaryFetchResponse) {
+        pending.resolve({ base64: message.base64, byteLength: message.byteLength });
+      } else pending.resolve(message.data);
     } else {
       pending.reject(new Error(message.error || 'Request failed'));
     }
@@ -112,6 +126,11 @@
 
   function fetchFromPageContext(url) {
     return requestFromMainWorld(MESSAGE_TYPES.fetchRequest, 10000, { url });
+  }
+
+  function fetchBinaryFromPageContext(url) {
+    // Large media needs a longer timeout than JSON API calls.
+    return requestFromMainWorld(MESSAGE_TYPES.binaryFetchRequest, 10 * 60 * 1000, { url });
   }
 
   function getPageInitialState() {

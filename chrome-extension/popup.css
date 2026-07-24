@@ -915,3 +915,181 @@ body {
   opacity: 0.65;
   cursor: default;
 }
+
+
+/* ---------- Theme contrast safeguards ---------- */
+html,
+body {
+  color: var(--text);
+  background: var(--canvas);
+}
+
+.card,
+.video-card,
+.media-card,
+.preview-box,
+.track-item,
+.status-box,
+.header,
+.field-control,
+.button,
+.footer {
+  color: inherit;
+}
+
+.video-title,
+.track-name,
+.status-title,
+.brand-line strong,
+.preview-label,
+.update-banner-title,
+.card-kicker,
+.field-label,
+.media-hint,
+.status-text,
+.progress-info,
+.step,
+.footer,
+.header-sub,
+.brand-line span {
+  /* Force token-based readable text in both themes */
+  color: var(--text);
+}
+
+.card-kicker,
+.field-label,
+.header-sub,
+.brand-line span,
+.track-count,
+.progress-info,
+.media-hint,
+.status-text,
+.footer {
+  color: var(--text-secondary);
+}
+
+.field-control,
+select.field-control,
+select.field-control option {
+  color: var(--text) !important;
+  background-color: var(--surface-solid) !important;
+  border-color: var(--line);
+}
+
+:root[data-theme="dark"] .field-control,
+:root[data-theme="dark"] select.field-control,
+:root[data-theme="dark"] select.field-control option {
+  color: #f5f5f7 !important;
+  background-color: #1c1c1e !important;
+}
+
+:root[data-theme="light"] .field-control,
+:root[data-theme="light"] select.field-control,
+:root[data-theme="light"] select.field-control option {
+  color: #1d1d1f !important;
+  background-color: #ffffff !important;
+}
+
+/* Ensure dark theme never collapses to white-on-white surfaces */
+:root[data-theme="dark"] body,
+:root[data-theme="dark"] .app-shell,
+:root[data-theme="dark"] .content {
+  color: #f5f5f7;
+}
+
+:root[data-theme="dark"] .card,
+:root[data-theme="dark"] .video-card,
+:root[data-theme="dark"] .media-card,
+:root[data-theme="dark"] .preview-box,
+:root[data-theme="dark"] .track-item,
+:root[data-theme="dark"] .header,
+:root[data-theme="dark"] .status-box {
+  background: rgba(36, 36, 40, 0.96);
+  color: #f5f5f7;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+:root[data-theme="dark"] .video-title,
+:root[data-theme="dark"] .track-name,
+:root[data-theme="dark"] .status-title,
+:root[data-theme="dark"] .brand-line strong,
+:root[data-theme="dark"] .update-banner-title {
+  color: #f5f5f7 !important;
+}
+
+:root[data-theme="dark"] .media-hint,
+:root[data-theme="dark"] .status-text,
+:root[data-theme="dark"] .header-sub,
+:root[data-theme="dark"] .card-kicker,
+:root[data-theme="dark"] .field-label,
+:root[data-theme="dark"] .track-count,
+:root[data-theme="dark"] .footer,
+:root[data-theme="dark"] .progress-info {
+  color: #c7c7cc !important;
+}
+
+:root[data-theme="light"] .video-title,
+:root[data-theme="light"] .track-name,
+:root[data-theme="light"] .status-title,
+:root[data-theme="light"] .brand-line strong {
+  color: #1d1d1f !important;
+}
+
+:root[data-theme="light"] .media-hint,
+:root[data-theme="light"] .status-text,
+:root[data-theme="light"] .header-sub,
+:root[data-theme="light"] .card-kicker,
+:root[data-theme="light"] .field-label,
+:root[data-theme="light"] .footer {
+  color: #6e6e73 !important;
+}
+
+/* Toast for update / general status */
+.status-toast {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: none;
+  margin: 0 0 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--surface-strong);
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 680;
+  line-height: 1.45;
+  box-shadow: var(--shadow-small);
+}
+
+.status-toast.is-visible {
+  display: block;
+}
+
+.status-toast.is-success {
+  border-color: color-mix(in srgb, var(--green) 35%, var(--line));
+  background: var(--green-soft);
+  color: var(--green);
+}
+
+.status-toast.is-error {
+  border-color: color-mix(in srgb, var(--danger) 35%, var(--line));
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.status-toast.is-info {
+  border-color: color-mix(in srgb, var(--blue) 30%, var(--line));
+  background: var(--blue-soft);
+  color: var(--blue);
+}
+
+:root[data-theme="dark"] .status-toast.is-success {
+  color: #30d158;
+}
+:root[data-theme="dark"] .status-toast.is-error {
+  color: #ff7088;
+}
+:root[data-theme="dark"] .status-toast.is-info {
+  color: #64b5ff;
+}

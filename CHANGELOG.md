@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.3.1 - 2026-07-24
+
+Download reliability and UI contrast fix.
+
+- Fixes Bilibili media CDN `HTTP 403` by enforcing `Referer: https://www.bilibili.com` through declarativeNetRequest rules (extension fetch cannot set Referer directly).
+- Adds page-context binary download fallback plus backup stream URL retries.
+- Improves dark/light text contrast so labels and selects stay readable.
+- Shows a clear toast when update check finds the installed version is already latest.
+
 ## 1.3.0 - 2026-07-24
 
 One-click update and refreshed media assets.

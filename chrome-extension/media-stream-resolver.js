@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Stream resolution layer.
  * Turns Bilibili playurl payloads into mode/quality options using data-driven rules.
  */
@@ -21,6 +21,21 @@
 
   function streamUrl(stream) {
     return stream?.baseUrl || stream?.base_url || stream?.backupUrl?.[0] || stream?.backup_url?.[0] || '';
+  }
+
+  function streamBackupUrls(stream) {
+    const backups = [];
+    const push = (value) => {
+      if (!value || backups.includes(value)) return;
+      backups.push(value);
+    };
+    const primary = streamUrl(stream);
+    const lists = [stream?.backupUrl, stream?.backup_url].filter(Boolean);
+    lists.forEach((list) => {
+      if (Array.isArray(list)) list.forEach(push);
+      else push(list);
+    });
+    return backups.filter((url) => url !== primary);
   }
 
   function pickBestStream(streams, preferredCodecIncludes = []) {
@@ -124,6 +139,8 @@
       qualityLabel: qualityMeta(video?.id || targetQn).fallbackLabel,
       videoUrl: video ? streamUrl(video) : '',
       audioUrl: audio ? streamUrl(audio) : '',
+      videoBackupUrls: video ? streamBackupUrls(video) : [],
+      audioBackupUrls: audio ? streamBackupUrls(audio) : [],
       videoCodecs: video ? codecText(video) : '',
       audioCodecs: audio ? codecText(audio) : '',
       estimatedBytes:
@@ -140,12 +157,22 @@
     if (!url) return null;
 
     const qn = Number(payload.quality || targetQn || 0);
+    const backups = [];
+    const push = (value) => {
+      if (!value || value === url || backups.includes(value)) return;
+      backups.push(value);
+    };
+    (durl[0]?.backup_url || []).forEach(push);
+    (durl.slice(1) || []).forEach((item) => push(item?.url));
+
     return {
       kind: 'durl',
       qualityQn: qn,
       qualityLabel: qualityMeta(qn).fallbackLabel,
       videoUrl: url,
       audioUrl: '',
+      videoBackupUrls: backups,
+      audioBackupUrls: [],
       videoCodecs: payload.format || 'mp4',
       audioCodecs: 'mixed',
       estimatedBytes: Number(durl[0]?.size || 0),

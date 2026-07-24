@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Media download orchestration service.
  * Depends on config + stream resolver + fMP4 remux, stays independent from popup UI.
  */
@@ -27,12 +27,14 @@
   }
 
   function cdnProfile() {
+    // Referer/Origin are enforced by KenEasyMediaCdnRules via DNR.
+    // Setting them here is unreliable in extension workers (forbidden headers).
     return {
       credentials: 'include',
+      cache: 'no-cache',
       headers: {
-        Referer: PAGE_REFERER,
         'User-Agent': DESKTOP_UA,
-        Origin: PAGE_REFERER,
+        Accept: '*/*',
       },
     };
   }
@@ -131,10 +133,18 @@
     throw new Error(errors.join(' | ') || 'Unable to resolve media streams.');
   }
 
-  async function fetchBinary(url, onProgress) {
-    const response = await fetch(url, cdnProfile());
-    if (!response.ok) throw new Error(`Media HTTP ${response.status}`);
+  function collectCandidateUrls(primaryUrl, extras) {
+    const list = [];
+    const push = (value) => {
+      if (!value || list.includes(value)) return;
+      list.push(value);
+    };
+    push(primaryUrl);
+    (extras || []).forEach(push);
+    return list;
+  }
 
+  async function readResponseBuffer(response, onProgress) {
     const total = Number(response.headers.get('content-length') || 0);
     if (!response.body || !response.body.getReader) {
       const buffer = await response.arrayBuffer();
@@ -153,6 +163,63 @@
       if (onProgress) onProgress(total ? received / total : 0, received, total);
     }
     return concatArrayBuffers(chunks);
+  }
+
+  async function fetchBinaryViaWorker(url, onProgress) {
+    const response = await fetch(url, cdnProfile());
+    if (!response.ok) throw new Error('Media HTTP ' + response.status);
+    return readResponseBuffer(response, onProgress);
+  }
+
+  async function fetchBinaryViaPage(tabId, url, onProgress) {
+    if (!tabId) throw new Error('No tab for page-context media fetch.');
+    // Page-context fetch inherits bilibili cookies and natural Referer.
+    const response = await chrome.tabs.sendMessage(tabId, {
+      type: 'FETCH_BINARY_FROM_PAGE',
+      url,
+    });
+    if (!response?.success || !response.base64) {
+      throw new Error(response?.error || 'Page-context media fetch failed.');
+    }
+    const binary = atob(response.base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+    if (onProgress) onProgress(1, bytes.byteLength, bytes.byteLength);
+    return bytes.buffer;
+  }
+
+  async function fetchBinary(url, onProgress, options) {
+    const candidates = collectCandidateUrls(url, options && options.backupUrls);
+    const tabId = options && options.tabId;
+    const errors = [];
+
+    // Ensure CDN Referer rewrite is active before worker fetch.
+    try {
+      await root.KenEasyMediaCdnRules?.ensureCdnHeaderRules?.();
+    } catch (error) {
+      console.warn(BRAND_CONFIG.logPrefix + ' Unable to install CDN header rules.', error);
+    }
+
+    for (const candidate of candidates) {
+      try {
+        return await fetchBinaryViaWorker(candidate, onProgress);
+      } catch (error) {
+        errors.push('worker:' + (error.message || error));
+      }
+    }
+
+    // Fallback: page world fetch (correct Referer + cookies).
+    if (tabId) {
+      for (const candidate of candidates) {
+        try {
+          return await fetchBinaryViaPage(tabId, candidate, onProgress);
+        } catch (error) {
+          errors.push('page:' + (error.message || error));
+        }
+      }
+    }
+
+    throw new Error(errors.join(' | ') || 'Media download failed.');
   }
 
   function concatArrayBuffers(chunks) {
@@ -210,12 +277,14 @@
     }
   }
 
-  async function materializeMedia({ mode, plan, onPhaseProgress }) {
+  async function materializeMedia({ mode, plan, onPhaseProgress, tabId }) {
+    const fetchOptsBase = { tabId };
+
     if (plan.kind === 'durl') {
       onPhaseProgress?.('video', 0);
       const buffer = await fetchBinary(plan.videoUrl, (ratio) => {
         onPhaseProgress?.('video', ratio);
-      });
+      }, Object.assign({}, fetchOptsBase, { backupUrls: plan.videoBackupUrls || [] }));
       return {
         buffer,
         mime: 'video/mp4',
@@ -229,14 +298,14 @@
       onPhaseProgress?.('video', 0);
       videoBuffer = await fetchBinary(plan.videoUrl, (ratio) => {
         onPhaseProgress?.('video', ratio);
-      });
+      }, Object.assign({}, fetchOptsBase, { backupUrls: plan.videoBackupUrls || [] }));
     }
 
     if (mode.needsAudio) {
       onPhaseProgress?.('audio', 0);
       audioBuffer = await fetchBinary(plan.audioUrl, (ratio) => {
         onPhaseProgress?.('audio', ratio);
-      });
+      }, Object.assign({}, fetchOptsBase, { backupUrls: plan.audioBackupUrls || [] }));
     }
 
     if (mode.id === 'video_with_audio') {
@@ -296,6 +365,7 @@
     activeJobs.set(jobId, controller);
 
     try {
+      await root.KenEasyMediaCdnRules?.ensureCdnHeaderRules?.();
       emitProgress(jobId, {
         percent: CONFIG.progress.resolve,
         phase: 'resolve',
@@ -321,6 +391,7 @@
       const { buffer, mime } = await materializeMedia({
         mode,
         plan,
+        tabId: request.tabId || null,
         onPhaseProgress: (phase, ratio) => {
           emitProgress(jobId, {
             percent: mapPhaseToPercent(phase, ratio),

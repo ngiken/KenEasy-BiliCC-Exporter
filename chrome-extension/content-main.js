@@ -79,6 +79,40 @@
         }, '*'));
     }
 
+    if (event.data.type === MESSAGE_TYPES.binaryFetchRequest) {
+      const { requestId, url } = event.data;
+      rawFetch(url, {
+        credentials: 'include',
+        cache: 'no-cache',
+        headers: {
+          Accept: '*/*',
+        },
+      })
+        .then(async (response) => {
+          if (!response.ok) throw new Error('Media HTTP ' + response.status);
+          const buffer = await response.arrayBuffer();
+          const bytes = new Uint8Array(buffer);
+          let binary = '';
+          const chunk = 0x8000;
+          for (let i = 0; i < bytes.length; i += chunk) {
+            binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+          }
+          window.postMessage({
+            type: MESSAGE_TYPES.binaryFetchResponse,
+            requestId,
+            success: true,
+            base64: btoa(binary),
+            byteLength: bytes.length,
+          }, '*');
+        })
+        .catch((error) => window.postMessage({
+          type: MESSAGE_TYPES.binaryFetchResponse,
+          requestId,
+          success: false,
+          error: error.message,
+        }, '*'));
+    }
+
     if (event.data.type === MESSAGE_TYPES.infoRequest) {
       const { requestId } = event.data;
       try {
