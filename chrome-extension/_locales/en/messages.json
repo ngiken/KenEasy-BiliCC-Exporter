@@ -238,5 +238,56 @@
   },
   "downloadVideoOnly": {
     "message": "Video only"
+  },
+  "updateButton": {
+    "message": "Update"
+  },
+  "updateChecking": {
+    "message": "Checking..."
+  },
+  "updateAvailable": {
+    "message": "Update available: v$VERSION$",
+    "placeholders": {
+      "version": {
+        "content": "$1"
+      }
+    }
+  },
+  "updateLatest": {
+    "message": "Already up to date (v$VERSION$)",
+    "placeholders": {
+      "version": {
+        "content": "$1"
+      }
+    }
+  },
+  "updateDownloading": {
+    "message": "Downloading latest package..."
+  },
+  "updateDownloaded": {
+    "message": "Latest package downloaded. Follow the reload steps."
+  },
+  "updateFailed": {
+    "message": "Update check failed."
+  },
+  "updateApplyFailed": {
+    "message": "Could not start the update download."
+  },
+  "updateBannerTitle": {
+    "message": "New version ready"
+  },
+  "updateBannerBody": {
+    "message": "v$VERSION$ is available. One click downloads the package and opens install steps.",
+    "placeholders": {
+      "version": {
+        "content": "$1"
+      }
+    }
+  },
+  "updateNow": {
+    "message": "Update now"
+  },
+  "updateCheckNow": {
+    "message": "Check for updates"
   }
 }

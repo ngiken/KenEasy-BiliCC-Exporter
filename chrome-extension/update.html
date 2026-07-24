@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f5f5f7">
+  <title>Update KenEasy BiliCC Exporter</title>
+  <link rel="stylesheet" href="design-tokens.css">
+  <link rel="stylesheet" href="update.css">
+  <script src="brand-config.js"></script>
+  <script src="theme-controller.js"></script>
+</head>
+<body>
+  <div class="page">
+    <header class="hero">
+      <img class="hero-icon" src="icons/icon128.png" alt="">
+      <div>
+        <div class="eyebrow" id="updateEyebrow">ONE-CLICK UPDATE</div>
+        <h1 id="updateTitle">Install the latest package</h1>
+        <p id="updateLead">The newest release package has been downloaded. Replace the unpacked folder and reload the extension.</p>
+      </div>
+    </header>
+
+    <section class="card">
+      <div class="meta">
+        <div>
+          <div class="meta-label" id="currentLabel">Current</div>
+          <div class="meta-value" id="currentVersion">-</div>
+        </div>
+        <div class="meta-arrow" aria-hidden="true">→</div>
+        <div>
+          <div class="meta-label" id="latestLabel">Latest</div>
+          <div class="meta-value accent" id="latestVersion">-</div>
+        </div>
+      </div>
+      <p class="package-line" id="packageLine">Package: -</p>
+      <ol class="steps">
+        <li id="step1">Extract the downloaded zip file.</li>
+        <li id="step2">Open chrome://extensions and enable Developer mode.</li>
+        <li id="step3">Click Reload on KenEasy BiliCC Exporter, or Remove it and Load unpacked again.</li>
+        <li id="step4">Select the extracted KenEasy-BiliCC-Exporter folder.</li>
+      </ol>
+      <div class="actions">
+        <button type="button" class="btn primary" id="openExtensionsBtn">Open extensions page</button>
+        <a class="btn secondary" id="openReleaseBtn" href="https://github.com/ngiken/KenEasy-BiliCC-Exporter/releases/latest" target="_blank" rel="noopener noreferrer">Open release page</a>
+      </div>
+      <p class="note" id="updateNote">Chrome cannot hot-swap unpacked extensions automatically. Reloading the folder is the final required step.</p>
+    </section>
+  </div>
+  <script src="update.js"></script>
+</body>
+</html>

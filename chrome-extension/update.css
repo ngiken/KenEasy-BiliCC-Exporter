@@ -1,0 +1,117 @@
+* { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  background: var(--canvas);
+  color: var(--text);
+  font-family: var(--font-sans);
+}
+.page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 28px 18px 40px;
+}
+.hero {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 18px;
+}
+.hero-icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 18px;
+  box-shadow: var(--shadow-small);
+}
+.eyebrow {
+  color: var(--text-tertiary);
+  font-size: 11px;
+  font-weight: 760;
+  letter-spacing: 0.08em;
+}
+h1 {
+  margin: 6px 0;
+  font-size: 28px;
+  letter-spacing: -0.03em;
+}
+.hero p {
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+.card {
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface-strong);
+  box-shadow: var(--shadow-panel);
+}
+.meta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+.meta-label {
+  color: var(--text-tertiary);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.meta-value {
+  margin-top: 4px;
+  font-size: 22px;
+  font-weight: 760;
+}
+.meta-value.accent { color: var(--blue); }
+.meta-arrow {
+  color: var(--text-tertiary);
+  font-size: 22px;
+}
+.package-line {
+  margin: 0 0 14px;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+.steps {
+  margin: 0 0 16px;
+  padding-left: 20px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 0;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+.btn.primary {
+  background: var(--blue);
+  color: #fff;
+  box-shadow: var(--shadow-action);
+}
+.btn.secondary {
+  background: var(--surface-muted);
+  color: var(--text);
+  border: 1px solid var(--line);
+}
+.note {
+  margin: 14px 0 0;
+  color: var(--text-tertiary);
+  font-size: 12px;
+  line-height: 1.55;
+}

@@ -44,6 +44,14 @@
     </header>
 
     <main class="content" id="main">
+      <section id="updateBanner" class="update-banner" hidden>
+        <div class="update-banner-copy">
+          <div class="update-banner-title" id="updateBannerTitle">New version ready</div>
+          <div class="update-banner-body" id="updateBannerBody">A newer package is available.</div>
+        </div>
+        <button type="button" class="update-banner-btn" id="updateNowBtn">Update now</button>
+      </section>
+
       <section id="stateLoading" class="status-box" aria-live="polite">
         <div class="spinner" aria-hidden="true"></div>
         <div class="status-kicker" id="loadingKicker">CONNECTING TO VIDEO</div>
@@ -171,7 +179,10 @@
     </main>
 
     <footer class="footer">
-      <span id="footerVersion">KenEasy BiliCC Exporter v1.0.4</span>
+      <div class="footer-left">
+        <span id="footerVersion">KenEasy BiliCC Exporter v1.3.0</span>
+        <button type="button" class="footer-update-btn" id="footerUpdateBtn">Update</button>
+      </div>
       <div class="footer-right">
         <a class="footer-link" id="footerHelp" href="help.html" target="_blank" rel="noopener noreferrer">使用帮助</a>
         <span class="footer-dot" aria-hidden="true">·</span>

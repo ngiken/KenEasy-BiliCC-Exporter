@@ -3,6 +3,7 @@ const appState = {
   subtitles: null,
   mediaOptions: null,
   mediaJobId: null,
+  updateInfo: null,
 };
 
 const BRAND_CONFIG = globalThis.KENEASY_BILICC_CONFIG;
@@ -83,6 +84,18 @@ const FALLBACK_TEXT = Object.freeze({
   downloadVideoWithAudio: 'Video + audio',
   downloadAudioOnly: 'Audio only',
   downloadVideoOnly: 'Video only',
+  updateButton: 'Update',
+  updateChecking: 'Checking...',
+  updateAvailable: 'Update available: v{version}',
+  updateLatest: 'Already up to date (v{version})',
+  updateDownloading: 'Downloading latest package...',
+  updateDownloaded: 'Latest package downloaded. Follow the reload steps.',
+  updateFailed: 'Update check failed.',
+  updateApplyFailed: 'Could not start the update download.',
+  updateBannerTitle: 'New version ready',
+  updateBannerBody: 'v{version} is available. One click downloads the package and opens install steps.',
+  updateNow: 'Update now',
+  updateCheckNow: 'Check for updates',
 });
 
 const STATE_IDS = Object.freeze({
@@ -102,10 +115,17 @@ const MEDIA_MESSAGE_TYPES = Object.freeze({
   mediaDownloadProgress: 'MEDIA_DOWNLOAD_PROGRESS',
 });
 
+const UPDATE_MESSAGE_TYPES = Object.freeze({
+  checkForUpdate: 'CHECK_FOR_UPDATE',
+  applyUpdate: 'APPLY_UPDATE',
+});
+
 document.addEventListener('DOMContentLoaded', async () => {
   applyStaticText();
   document.getElementById('fetchBtn')?.addEventListener('click', fetchSubtitles);
   document.getElementById('mediaDownloadBtn')?.addEventListener('click', downloadMedia);
+  document.getElementById('footerUpdateBtn')?.addEventListener('click', () => handleUpdateButtonClick());
+  document.getElementById('updateNowBtn')?.addEventListener('click', () => applyLatestUpdate());
   document.querySelectorAll('.btn-back').forEach((button) => {
     button.addEventListener('click', () => showState('ready'));
   });
@@ -118,7 +138,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  await initActiveTab();
+  await Promise.all([
+    initActiveTab(),
+    checkForUpdates({ force: false, silent: true }),
+  ]);
 });
 
 if (typeof chrome !== 'undefined' && chrome.tabs) {
@@ -442,6 +465,148 @@ function showNoSubtitle(data) {
 }
 
 
+
+async function checkForUpdates({ force = false, silent = false } = {}) {
+  const button = document.getElementById('footerUpdateBtn');
+  if (button && !silent) {
+    button.disabled = true;
+    button.textContent = t('updateChecking');
+  }
+
+  try {
+    const response = await chrome.runtime.sendMessage({
+      type: UPDATE_MESSAGE_TYPES.checkForUpdate,
+      force: !!force,
+    });
+    if (!response?.success) throw new Error(response?.error || t('updateFailed'));
+    appState.updateInfo = response.data;
+    renderUpdateState(response.data);
+    return response.data;
+  } catch (error) {
+    console.warn(`${BRAND_CONFIG.logPrefix} Update check failed.`, error);
+    if (!silent) {
+      setUpdateStatus(error.message || t('updateFailed'), false);
+    }
+    return null;
+  } finally {
+    if (button) button.disabled = false;
+  }
+}
+
+function renderUpdateState(info) {
+  const banner = document.getElementById('updateBanner');
+  const button = document.getElementById('footerUpdateBtn');
+  if (!info) {
+    if (banner) banner.hidden = true;
+    if (button) {
+      button.classList.remove('has-update');
+      button.textContent = t('updateCheckNow');
+    }
+    return;
+  }
+
+  if (info.hasUpdate) {
+    if (banner) {
+      banner.hidden = false;
+      setText('updateBannerTitle', t('updateBannerTitle'));
+      setText('updateBannerBody', t('updateBannerBody', [info.latestVersion]));
+      setText('updateNowBtn', t('updateNow'));
+    }
+    if (button) {
+      button.classList.add('has-update');
+      button.textContent = t('updateButton');
+      button.title = t('updateAvailable', [info.latestVersion]);
+    }
+    return;
+  }
+
+  if (banner) banner.hidden = true;
+  if (button) {
+    button.classList.remove('has-update');
+    button.textContent = t('updateCheckNow');
+    button.title = t('updateLatest', [info.currentVersion || getExtensionVersion()]);
+  }
+}
+
+async function handleUpdateButtonClick() {
+  const info = appState.updateInfo;
+  if (info?.hasUpdate) {
+    await applyLatestUpdate();
+    return;
+  }
+  const result = await checkForUpdates({ force: true, silent: false });
+  if (result?.hasUpdate) {
+    setUpdateStatus(t('updateAvailable', [result.latestVersion]), true);
+  } else if (result) {
+    setUpdateStatus(t('updateLatest', [result.currentVersion || getExtensionVersion()]), false);
+  }
+}
+
+async function applyLatestUpdate() {
+  const button = document.getElementById('footerUpdateBtn');
+  const nowBtn = document.getElementById('updateNowBtn');
+  if (button) {
+    button.disabled = true;
+    button.textContent = t('updateDownloading');
+  }
+  if (nowBtn) {
+    nowBtn.disabled = true;
+    nowBtn.textContent = t('updateDownloading');
+  }
+
+  try {
+    const response = await chrome.runtime.sendMessage({
+      type: UPDATE_MESSAGE_TYPES.applyUpdate,
+      preferStore: true,
+    });
+    if (!response?.success) throw new Error(response?.error || t('updateApplyFailed'));
+
+    const payload = response.data;
+    if (!payload.applied) {
+      setUpdateStatus(t('updateLatest', [payload.result?.currentVersion || getExtensionVersion()]), false);
+      renderUpdateState(payload.result);
+      return;
+    }
+
+    if (payload.strategy === 'github_package' && payload.guideUrl) {
+      const guide = new URL(payload.guideUrl);
+      guide.searchParams.set('current', payload.result?.currentVersion || getExtensionVersion());
+      guide.searchParams.set('latest', payload.result?.latestVersion || '');
+      guide.searchParams.set('package', payload.packageName || '');
+      guide.searchParams.set('release', payload.result?.releaseUrl || '');
+      chrome.tabs.create({ url: guide.toString() });
+    }
+
+    setUpdateStatus(t('updateDownloaded'), true);
+    if (payload.result) renderUpdateState(payload.result);
+  } catch (error) {
+    setUpdateStatus(error.message || t('updateApplyFailed'), false);
+  } finally {
+    if (button) button.disabled = false;
+    if (nowBtn) {
+      nowBtn.disabled = false;
+      nowBtn.textContent = t('updateNow');
+    }
+    if (button && !appState.updateInfo?.hasUpdate) {
+      button.textContent = t('updateCheckNow');
+    } else if (button) {
+      button.textContent = t('updateButton');
+    }
+  }
+}
+
+function setUpdateStatus(message, isSuccess) {
+  // Prefer media hint when ready; otherwise keep error box free unless needed.
+  const hint = document.getElementById('mediaHint');
+  if (hint && !document.getElementById('stateReady')?.hidden) {
+    hint.textContent = message;
+    hint.style.color = isSuccess ? 'var(--green)' : 'var(--danger)';
+    return;
+  }
+  const button = document.getElementById('footerUpdateBtn');
+  if (button) button.title = message;
+}
+
 async function loadMediaOptions(video) {
   const qualitySelect = document.getElementById('mediaQualitySelect');
   const modeSelect = document.getElementById('mediaModeSelect');
@@ -722,6 +887,11 @@ function applyStaticText() {
   setText('mediaModeLabel', t('mediaModeLabel'));
   setText('mediaHint', t('mediaHint'));
   setText('mediaDownloadBtnLabel', t('mediaDownloadButton'));
+  setText('updateBannerTitle', t('updateBannerTitle'));
+  setText('updateBannerBody', t('updateBannerBody', [getExtensionVersion()]));
+  setText('updateNowBtn', t('updateNow'));
+  const updateBtn = document.getElementById('footerUpdateBtn');
+  if (updateBtn) updateBtn.textContent = t('updateCheckNow');
   setText('downloadingKicker', t('downloadingKicker'));
   setText('mediaProgressInfo', `${t('mediaProgressStart')} (0%)`);
   setText('mediaStep1', t('mediaStepResolve'));
@@ -753,7 +923,7 @@ function getExtensionVersion() {
   if (typeof chrome !== 'undefined' && chrome.runtime?.getManifest) {
     return chrome.runtime.getManifest().version;
   }
-  return '1.2.0';
+  return '1.3.0';
 }
 
 function t(key, substitutions = []) {
@@ -767,7 +937,8 @@ function t(key, substitutions = []) {
     text = text
       .replace(`{${index}}`, value)
       .replace('{count}', value)
-      .replace('{status}', value);
+      .replace('{status}', value)
+      .replace('{version}', value);
   });
   return text;
 }

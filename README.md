@@ -16,7 +16,7 @@
   </p>
 
   <p>
-    <img alt="Version" src="https://img.shields.io/badge/version-1.2.0-fb7299">
+    <img alt="Version" src="https://img.shields.io/badge/version-1.3.0-fb7299">
     <img alt="Manifest" src="https://img.shields.io/badge/manifest-v3-00aeec">
     <img alt="License" src="https://img.shields.io/badge/license-MIT-27c499">
   </p>
@@ -36,6 +36,7 @@ KenEasy BiliCC Exporter is a small Chrome extension for Bilibili video pages. It
 | Subtitle discovery | Uses page-observed subtitle data first, then falls back to Bilibili web APIs. |
 | Export formats | Saves subtitle tracks as `TXT` or `SRT` with UTF-8 BOM for Windows compatibility. |
 | Video / audio download | Saves the current Bilibili video with audio (or audio-only) to your computer |
+| One-click update | Checks GitHub Releases and downloads the latest package for reload |
 | Store-ready footprint | Keeps the extension dependency-free and small for Chrome Web Store packaging. |
 
 ## Built-in Help & About
@@ -100,7 +101,10 @@ background.js
   Owns Bilibili API calls, WBI signing, subtitle JSON loading, and error normalization.
 
 popup.js
-  Owns UI state, cache preference, TXT/SRT conversion, preview, and downloads.
+  Owns UI state, cache preference, TXT/SRT conversion, preview, downloads, and update actions.
+
+update-config.js / update-service.js
+  Data-driven GitHub release checks and package download strategies.
 ```
 
 This keeps page access, extension messaging, API rules, and UI behavior separated so the project can stay maintainable as it grows.
@@ -119,6 +123,11 @@ chrome-extension/
   help-assets/
   design-tokens.css
   theme-controller.js
+  update-config.js
+  update-service.js
+  update.html
+  update.css
+  update.js
   popup.js
   background.js
   content.js

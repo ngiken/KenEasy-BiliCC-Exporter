@@ -4,6 +4,8 @@
   'media-fmp4-remux.js',
   'media-stream-resolver.js',
   'media-download-service.js',
+  'update-config.js',
+  'update-service.js',
 );
 
 const BRAND_CONFIG = globalThis.KENEASY_BILICC_CONFIG;
@@ -19,6 +21,8 @@ const MESSAGES = Object.freeze({
   fetchFromPage: 'FETCH_API_FROM_PAGE',
   resolveMediaOptions: globalThis.KENEASY_MEDIA_DOWNLOAD_CONFIG.messages.resolveMediaOptions,
   startMediaDownload: globalThis.KENEASY_MEDIA_DOWNLOAD_CONFIG.messages.startMediaDownload,
+  checkForUpdate: globalThis.KENEASY_UPDATE_CONFIG.messages.checkForUpdate,
+  applyUpdate: globalThis.KENEASY_UPDATE_CONFIG.messages.applyUpdate,
 });
 
 const MIXIN_KEY_ENC_TAB = [
@@ -267,6 +271,21 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
   if (request.type === MESSAGES.startMediaDownload) {
     globalThis.KenEasyMediaDownloadService.startMediaDownload(request, mediaHelpers)
+      .then((data) => sendResponse({ success: true, data }))
+      .catch((error) => sendResponse({ success: false, error: error.message || String(error) }));
+    return true;
+  }
+
+
+  if (request.type === MESSAGES.checkForUpdate) {
+    globalThis.KenEasyUpdateService.checkForUpdate({ force: !!request.force })
+      .then((data) => sendResponse({ success: true, data }))
+      .catch((error) => sendResponse({ success: false, error: error.message || String(error) }));
+    return true;
+  }
+
+  if (request.type === MESSAGES.applyUpdate) {
+    globalThis.KenEasyUpdateService.applyUpdate({ preferStore: request.preferStore !== false })
       .then((data) => sendResponse({ success: true, data }))
       .catch((error) => sendResponse({ success: false, error: error.message || String(error) }));
     return true;

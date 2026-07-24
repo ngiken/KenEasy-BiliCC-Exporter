@@ -238,5 +238,56 @@
   },
   "downloadVideoOnly": {
     "message": "仅视频"
+  },
+  "updateButton": {
+    "message": "更新"
+  },
+  "updateChecking": {
+    "message": "检查中..."
+  },
+  "updateAvailable": {
+    "message": "发现新版本：v$VERSION$",
+    "placeholders": {
+      "version": {
+        "content": "$1"
+      }
+    }
+  },
+  "updateLatest": {
+    "message": "已是最新版（v$VERSION$）",
+    "placeholders": {
+      "version": {
+        "content": "$1"
+      }
+    }
+  },
+  "updateDownloading": {
+    "message": "正在下载最新安装包..."
+  },
+  "updateDownloaded": {
+    "message": "最新安装包已下载，请按步骤重新加载扩展。"
+  },
+  "updateFailed": {
+    "message": "检查更新失败。"
+  },
+  "updateApplyFailed": {
+    "message": "无法开始更新下载。"
+  },
+  "updateBannerTitle": {
+    "message": "有新版本可更新"
+  },
+  "updateBannerBody": {
+    "message": "最新版本 v$VERSION$ 已发布。一点即可下载安装包并查看更新步骤。",
+    "placeholders": {
+      "version": {
+        "content": "$1"
+      }
+    }
+  },
+  "updateNow": {
+    "message": "立即更新"
+  },
+  "updateCheckNow": {
+    "message": "检查更新"
   }
 }

@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.3.0 - 2026-07-24
+
+One-click update and refreshed media assets.
+
+- Adds a layered GitHub release update checker with one-click package download.
+- Shows an update banner and footer update button when a newer version is available.
+- Opens a local update guide after downloading the latest manual-install zip.
+- Refreshes README/help preview images, usage gif, and demo video to match the current popup UI (media download + update).
+
 ## 1.2.0 - 2026-07-24
 
 Media download release.
