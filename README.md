@@ -16,7 +16,7 @@
   </p>
 
   <p>
-    <img alt="Version" src="https://img.shields.io/badge/version-1.0.4-fb7299">
+    <img alt="Version" src="https://img.shields.io/badge/version-1.1.0-fb7299">
     <img alt="Manifest" src="https://img.shields.io/badge/manifest-v3-00aeec">
     <img alt="License" src="https://img.shields.io/badge/license-MIT-27c499">
   </p>
@@ -36,6 +36,18 @@ KenEasy BiliCC Exporter is a small Chrome extension for Bilibili video pages. It
 | Subtitle discovery | Uses page-observed subtitle data first, then falls back to Bilibili web APIs. |
 | Export formats | Saves subtitle tracks as `TXT` or `SRT` with UTF-8 BOM for Windows compatibility. |
 | Store-ready footprint | Keeps the extension dependency-free and small for Chrome Web Store packaging. |
+
+## Built-in Help & About
+
+Use the **Help & guide** link at the bottom of the popup to open the extension's built-in help page. It includes:
+
+- A three-step subtitle export guide
+- Annotated popup screenshots
+- A complete animated usage demo
+- Chrome Developer mode installation steps
+- TXT / SRT format guidance and common questions
+
+The help page uses only packaged local assets, supports Chinese and English, and follows the same light/dark appearance setting as the popup.
 
 ## Demo
 
@@ -99,6 +111,13 @@ chrome-extension/
   manifest.json
   brand-config.js
   popup.html
+  popup.css
+  help.html
+  help.css
+  help.js
+  help-assets/
+  design-tokens.css
+  theme-controller.js
   popup.js
   background.js
   content.js
@@ -110,6 +129,11 @@ KenEasy-BiliCC-Exporter-store.zip
 KenEasy-BiliCC-Exporter-manual-install.zip
 scratch/zip_extension.py
 ```
+
+
+## Friends / 友情链接
+
+- [LINUX DO](https://linux.do)
 
 ## License
 
