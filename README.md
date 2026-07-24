@@ -81,6 +81,10 @@ Zip the contents of the `chrome-extension` folder, not the parent folder:
 python scratch/zip_extension.py
 ```
 
+Privacy policy: [PRIVACY.md](PRIVACY.md)
+
+Store publish checklist: [docs/CHROME_WEB_STORE.md](docs/CHROME_WEB_STORE.md)
+
 The Chrome Web Store upload package is:
 
 ```text

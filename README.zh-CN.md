@@ -151,6 +151,11 @@ scratch/zip_extension.py
 
 - [LINUX DO](https://linux.do)
 
+## 上架 / 隐私
+
+- 隐私政策：[PRIVACY.md](PRIVACY.md)
+- Chrome Web Store 上架清单：[docs/CHROME_WEB_STORE.md](docs/CHROME_WEB_STORE.md)
+
 ## 许可证
 
 MIT
