@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.2.0 - 2026-07-24
+
+Media download release.
+
+- Adds current-video media download with selectable quality and mode (`Video + audio`, `Audio only`, `Video only`).
+- Resolves Bilibili playurl streams through ordered, data-driven strategies (DASH first, single-file MP4 fallback).
+- Downloads video/audio tracks separately when needed and remuxes them locally into one playable MP4 without external dependencies.
+- Extends host permissions for Bilibili media CDNs and keeps subtitle export behavior intact.
+
+## 1.1.0 - 2026-07-15
+
+Visual refresh and built-in help release.
+
+- Aligns the popup with the shared KenEasy light/dark visual system while retaining the original extension icon.
+- Adds a packaged Help & About page with screenshots, an animated usage guide, installation steps, format guidance, and common questions.
+- Adds Chinese and English help content, reusable design tokens, and a shared appearance controller.
+- Keeps subtitle discovery, conversion, and download behavior unchanged.
+
 ## 1.0.4 - 2026-07-09
 
 Filename improvement release.

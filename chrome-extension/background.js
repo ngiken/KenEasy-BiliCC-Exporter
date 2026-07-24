@@ -1,4 +1,10 @@
-importScripts('brand-config.js');
+﻿importScripts(
+  'brand-config.js',
+  'media-download-config.js',
+  'media-fmp4-remux.js',
+  'media-stream-resolver.js',
+  'media-download-service.js',
+);
 
 const BRAND_CONFIG = globalThis.KENEASY_BILICC_CONFIG;
 const API_BASE = 'https://api.bilibili.com';
@@ -11,6 +17,8 @@ const MESSAGES = Object.freeze({
   fetchSubtitles: 'FETCH_SUBTITLES',
   fetchVideoDetail: 'FETCH_VIDEO_DETAIL',
   fetchFromPage: 'FETCH_API_FROM_PAGE',
+  resolveMediaOptions: globalThis.KENEASY_MEDIA_DOWNLOAD_CONFIG.messages.resolveMediaOptions,
+  startMediaDownload: globalThis.KENEASY_MEDIA_DOWNLOAD_CONFIG.messages.startMediaDownload,
 });
 
 const MIXIN_KEY_ENC_TAB = [
@@ -231,6 +239,10 @@ async function handleFetchSubtitles({ bvid, aid, cid, tabId }) {
   return { hasSubtitles: tracks.length > 0, needLogin: false, tracks };
 }
 
+const mediaHelpers = Object.freeze({
+  signWbi,
+});
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.type === MESSAGES.fetchSubtitles) {
     handleFetchSubtitles(request)
@@ -241,6 +253,20 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
   if (request.type === MESSAGES.fetchVideoDetail) {
     getVideoInfo(request.bvid)
+      .then((data) => sendResponse({ success: true, data }))
+      .catch((error) => sendResponse({ success: false, error: error.message || String(error) }));
+    return true;
+  }
+
+  if (request.type === MESSAGES.resolveMediaOptions) {
+    globalThis.KenEasyMediaDownloadService.resolveMediaOptions(request, mediaHelpers)
+      .then((data) => sendResponse({ success: true, data }))
+      .catch((error) => sendResponse({ success: false, error: error.message || String(error) }));
+    return true;
+  }
+
+  if (request.type === MESSAGES.startMediaDownload) {
+    globalThis.KenEasyMediaDownloadService.startMediaDownload(request, mediaHelpers)
       .then((data) => sendResponse({ success: true, data }))
       .catch((error) => sendResponse({ success: false, error: error.message || String(error) }));
     return true;

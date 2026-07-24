@@ -1,7 +1,7 @@
-{
+﻿{
   "manifest_version": 3,
   "name": "__MSG_extensionName__",
-  "version": "1.0.4",
+  "version": "1.2.0",
   "description": "__MSG_extensionDescription__",
   "default_locale": "en",
   "icons": {
@@ -28,7 +28,10 @@
   "host_permissions": [
     "https://api.bilibili.com/*",
     "https://*.bilibili.com/*",
-    "https://*.hdslb.com/*"
+    "https://*.hdslb.com/*",
+    "https://*.bilivideo.com/*",
+    "https://*.bilivideo.cn/*",
+    "https://*.akamaized.net/*"
   ],
   "content_scripts": [
     {

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f5f5f7">
+  <title>KenEasy BiliCC Exporter — 使用帮助</title>
+  <link rel="stylesheet" href="design-tokens.css">
+  <link rel="stylesheet" href="help.css">
+  <script src="brand-config.js"></script>
+  <script src="theme-controller.js"></script>
+</head>
+<body>
+  <div class="wallpaper" aria-hidden="true">
+    <span class="glow glow-pink"></span>
+    <span class="glow glow-blue"></span>
+    <span class="glow glow-violet"></span>
+  </div>
+
+  <div class="help-shell">
+    <header class="help-header">
+      <a class="brand" href="#quickstart" aria-label="KenEasy BiliCC Exporter">
+        <span class="logo"><img src="icons/icon48.png" alt=""></span>
+        <span class="brand-copy">
+          <span class="brand-line"><strong>KenEasy</strong><span>BiliCC Exporter</span></span>
+          <span class="brand-sub" data-help="brandSub">使用帮助与关于</span>
+        </span>
+      </a>
+      <nav class="help-actions" aria-label="Help navigation">
+        <a class="nav-link active" href="#quickstart" data-help="navStart">快速开始</a>
+        <a class="nav-link" href="#install" data-help="navInstall">安装</a>
+        <a class="nav-link" href="#faq" data-help="navFaq">常见问题</a>
+        <div class="lang-switch" role="group" aria-label="Language">
+          <button type="button" class="lang-btn active" data-help-lang="zh">中</button>
+          <button type="button" class="lang-btn" data-help-lang="en">EN</button>
+        </div>
+        <button type="button" id="themeToggle" data-theme-toggle class="theme-toggle" aria-label="切换外观" aria-pressed="false">
+          <span class="theme-sun" aria-hidden="true">☼</span>
+          <span class="theme-moon" aria-hidden="true">☾</span>
+        </button>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero section-card">
+        <div class="hero-copy">
+          <p class="eyebrow"><span class="eyebrow-dot"></span><span data-help="eyebrow">KEN EASY · BILICC WORKFLOW</span></p>
+          <h1 data-help="heroTitle">把 Bilibili CC 字幕，轻松保存下来。</h1>
+          <p class="hero-lead" data-help="heroLead">打开视频、提取字幕、选择格式。整个过程保持简单，字幕文件直接保存到你的电脑。</p>
+          <div class="hero-chips">
+            <span class="hero-chip pink" data-help="chipTxt">TXT 纯文本</span>
+            <span class="hero-chip blue" data-help="chipSrt">SRT 标准字幕</span>
+            <span class="hero-chip green" data-help="chipFast">快速导出</span>
+          </div>
+          <a class="primary-link" href="#quickstart"><span data-help="heroCta">查看三步教程</span><span aria-hidden="true">→</span></a>
+        </div>
+        <div class="hero-visual" aria-label="Interface screenshots">
+          <div class="hero-orbit orbit-one"></div>
+          <div class="hero-orbit orbit-two"></div>
+          <img class="hero-shot shot-back" src="help-assets/popup-screenshot.png" alt="BiliCC Exporter subtitle list screenshot">
+          <img class="hero-shot shot-front" src="help-assets/popup-demo.png" alt="BiliCC Exporter popup screenshot">
+          <div class="hero-badge"><img src="icons/icon48.png" alt=""><span data-help="heroBadge">字幕导出</span></div>
+        </div>
+      </section>
+
+      <section class="content-section" id="quickstart">
+        <div class="section-heading">
+          <div><p class="section-index">01 · START HERE</p><h2 data-help="startTitle">三步完成第一次导出</h2></div>
+          <p data-help="startLead">不需要复制链接，也不需要手动寻找字幕接口。</p>
+        </div>
+        <div class="step-grid">
+          <article class="step-card"><div class="step-number">01</div><div class="step-icon">↗</div><h3 data-help="stepOneTitle">打开视频页</h3><p data-help="stepOneBody">在 Chrome 打开带有 BV 号的 Bilibili 视频页面，等待页面加载完成。</p></article>
+          <article class="step-card"><div class="step-number">02</div><div class="step-icon">✦</div><h3 data-help="stepTwoTitle">提取字幕</h3><p data-help="stepTwoBody">点击扩展图标，确认当前视频后点击「提取字幕」，等待轨道读取完成。</p></article>
+          <article class="step-card"><div class="step-number">03</div><div class="step-icon">↓</div><h3 data-help="stepThreeTitle">选择格式</h3><p data-help="stepThreeBody">在字幕轨道右侧选择 TXT 或 SRT，文件会自动下载到 Chrome 的下载目录。</p></article>
+        </div>
+      </section>
+
+      <section class="content-section screenshot-section" id="screenshots">
+        <div class="section-heading">
+          <div><p class="section-index">02 · SCREENSHOTS</p><h2 data-help="screensTitle">认识弹窗里的几个位置</h2></div>
+          <p data-help="screensLead">下面的截图可以帮助你快速找到每一步。</p>
+        </div>
+        <div class="screenshot-layout">
+          <figure class="main-screenshot"><img src="help-assets/popup-demo.png" alt="字幕导出弹窗截图"><figcaption data-help="screenCaptionOne">字幕轨道列表：每条轨道都可以分别保存为 TXT 或 SRT。</figcaption></figure>
+          <div class="callout-list">
+            <div class="callout"><span>01</span><div><strong data-help="calloutOneTitle">当前视频</strong><p data-help="calloutOneBody">显示视频标题、BV 号和时长，确认你打开的是正确页面。</p></div></div>
+            <div class="callout"><span>02</span><div><strong data-help="calloutTwoTitle">字幕轨道</strong><p data-help="calloutTwoBody">中文、英文或其他可用语言会分别显示在这里。</p></div></div>
+            <div class="callout"><span>03</span><div><strong data-help="calloutThreeTitle">导出格式</strong><p data-help="calloutThreeBody">TXT 适合阅读和编辑，SRT 保留时间轴，适合播放器使用。</p></div></div>
+            <div class="callout"><span>04</span><div><strong data-help="calloutFourTitle">字幕预览</strong><p data-help="calloutFourBody">下载前可以先查看开头内容，避免选错字幕轨道。</p></div></div>
+          </div>
+        </div>
+        <figure class="demo-strip"><img src="help-assets/use-demo.gif" alt="BiliCC Exporter use demo"><figcaption data-help="screenCaptionTwo">动态演示：从当前视频页打开扩展并完成字幕下载。</figcaption></figure>
+      </section>
+
+      <section class="content-section" id="install">
+        <div class="section-heading">
+          <div><p class="section-index">03 · INSTALL</p><h2 data-help="installTitle">第一次安装怎么做？</h2></div>
+          <p data-help="installLead">GitHub 下载的扩展需要通过开发者模式加载。</p>
+        </div>
+        <div class="install-layout">
+          <div class="install-steps">
+            <div class="install-step"><span>1</span><p data-help="installOne">下载并解压 <code>KenEasy-BiliCC-Exporter-manual-install.zip</code>。</p></div>
+            <div class="install-step"><span>2</span><p data-help="installTwo">在 Chrome 地址栏打开 <code>chrome://extensions/</code>。</p></div>
+            <div class="install-step"><span>3</span><p data-help="installThree">打开右上角「开发者模式」，点击「加载已解压的扩展程序」。</p></div>
+            <div class="install-step"><span>4</span><p data-help="installFour">选择解压后的 <code>chrome-extension</code> 文件夹，然后固定扩展图标。</p></div>
+          </div>
+          <aside class="tip-card"><img src="icons/icon128.png" alt="KenEasy BiliCC Exporter icon"><p class="tip-label" data-help="tipLabel">小提示</p><h3 data-help="tipTitle">把扩展固定在工具栏</h3><p data-help="tipBody">点击 Chrome 工具栏的拼图图标，将 KenEasy BiliCC Exporter 固定下来，之后打开视频就能快速使用。</p></aside>
+        </div>
+      </section>
+
+      <section class="content-section faq-section" id="faq">
+        <div class="section-heading"><div><p class="section-index">04 · FAQ</p><h2 data-help="faqTitle">遇到问题时先看这里</h2></div><p data-help="faqLead">大多数情况都和当前视频的字幕状态有关。</p></div>
+        <div class="faq-grid">
+          <details open><summary data-help="faqOneQ">为什么显示没有字幕？</summary><p data-help="faqOneA">这个视频可能没有 CC 字幕，或者字幕还没有被当前页面加载。可以先刷新视频页，再打开扩展重试。</p></details>
+          <details><summary data-help="faqTwoQ">为什么需要登录？</summary><p data-help="faqTwoA">部分字幕接口只对已登录用户开放。请先在当前 Chrome 浏览器登录 Bilibili，再重新打开扩展。</p></details>
+          <details><summary data-help="faqMediaQ">可以下载当前视频和音频吗？</summary><p data-help="faqMediaA">可以。在弹窗的“视频下载”区域选择清晰度与模式，即可把视频+音频、仅音频或仅视频保存到本机。</p></details>
+          <details><summary data-help="faqThreeQ">TXT 和 SRT 有什么区别？</summary><p data-help="faqThreeA">TXT 只保留字幕文字，适合阅读和二次编辑；SRT 保留时间轴，适合导入视频播放器或剪辑软件。</p></details>
+          <details><summary data-help="faqFourQ">下载的文件在哪里？</summary><p data-help="faqFourA">默认会保存到 Chrome 的下载目录。如果浏览器启用了“每次下载前询问保存位置”，会出现保存位置选择框。</p></details>
+        </div>
+      </section>
+    </main>
+
+    <footer class="help-footer">
+      <div><strong>KenEasy BiliCC Exporter</strong><span data-help="footerText">开源、轻量、专注于字幕导出。</span></div>
+      <div class="footer-links"><span id="helpVersion">v1.1.0</span><a href="https://github.com/ngiken/KenEasy-BiliCC-Exporter" target="_blank" rel="noopener noreferrer">GitHub</a><button type="button" id="closeHelp" class="footer-close" data-help="footerClose">关闭帮助页</button></div>
+    </footer>
+  </div>
+  <script src="help.js"></script>
+</body>
+</html>

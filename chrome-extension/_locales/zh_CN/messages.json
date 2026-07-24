@@ -3,10 +3,10 @@
     "message": "KenEasy BiliCC Exporter"
   },
   "extensionDescription": {
-    "message": "下载 Bilibili / B站 CC 字幕，支持 TXT 和 SRT 格式。"
+    "message": "导出 Bilibili / B站 CC 字幕，并下载当前视频（含音频）到本地。"
   },
   "headerSubtitle": {
-    "message": "B站 CC 字幕导出工具"
+    "message": "B站 CC 字幕导出 + 视频下载"
   },
   "loading": {
     "message": "正在读取当前视频..."
@@ -100,5 +100,143 @@
         "content": "$1"
       }
     }
+  },
+  "loadingKicker": {
+    "message": "正在连接视频"
+  },
+  "notBiliKicker": {
+    "message": "准备就绪"
+  },
+  "notBiliTitle": {
+    "message": "打开一个 Bilibili 视频"
+  },
+  "currentVideoLabel": {
+    "message": "当前视频"
+  },
+  "extractingKicker": {
+    "message": "正在准备字幕"
+  },
+  "availableTracksLabel": {
+    "message": "可下载字幕轨道"
+  },
+  "checkedVideoLabel": {
+    "message": "已检查视频"
+  },
+  "noSubTitle": {
+    "message": "暂时没有可下载字幕"
+  },
+  "errorTitle": {
+    "message": "没有顺利完成"
+  },
+  "themeToLight": {
+    "message": "切换到浅色外观"
+  },
+  "themeToDark": {
+    "message": "切换到深色外观"
+  },
+  "helpLink": {
+    "message": "使用帮助"
+  },
+  "mediaDownloadLabel": {
+    "message": "视频下载"
+  },
+  "mediaQualityLabel": {
+    "message": "清晰度"
+  },
+  "mediaModeLabel": {
+    "message": "模式"
+  },
+  "mediaHint": {
+    "message": "可将当前视频连同音频一并下载到本地，也可只下载音频。"
+  },
+  "mediaDownloadButton": {
+    "message": "下载媒体"
+  },
+  "downloadingKicker": {
+    "message": "正在下载媒体"
+  },
+  "mediaProgressStart": {
+    "message": "正在准备媒体下载"
+  },
+  "mediaProgressResolve": {
+    "message": "正在解析可播放流"
+  },
+  "mediaProgressSelect": {
+    "message": "正在选择清晰度与音视频轨"
+  },
+  "mediaProgressVideo": {
+    "message": "正在下载视频轨"
+  },
+  "mediaProgressAudio": {
+    "message": "正在下载音频轨"
+  },
+  "mediaProgressRemux": {
+    "message": "正在合并视频与音频"
+  },
+  "mediaProgressSave": {
+    "message": "正在保存到本地"
+  },
+  "mediaProgressDone": {
+    "message": "媒体已保存"
+  },
+  "mediaStepResolve": {
+    "message": "解析媒体流"
+  },
+  "mediaStepDownload": {
+    "message": "下载音视频轨"
+  },
+  "mediaStepSave": {
+    "message": "保存本地文件"
+  },
+  "mediaOptionsFailed": {
+    "message": "无法加载此视频的下载选项。"
+  },
+  "mediaDownloadFailed": {
+    "message": "媒体下载失败。"
+  },
+  "qualityAuto": {
+    "message": "自动"
+  },
+  "quality8k": {
+    "message": "8K"
+  },
+  "qualityDolbyVision": {
+    "message": "杜比视界"
+  },
+  "qualityHdr": {
+    "message": "HDR"
+  },
+  "quality4k": {
+    "message": "4K"
+  },
+  "quality1080p60": {
+    "message": "1080P60"
+  },
+  "quality1080pPlus": {
+    "message": "1080P+"
+  },
+  "quality1080p": {
+    "message": "1080P"
+  },
+  "quality720p60": {
+    "message": "720P60"
+  },
+  "quality720p": {
+    "message": "720P"
+  },
+  "quality480p": {
+    "message": "480P"
+  },
+  "quality360p": {
+    "message": "360P"
+  },
+  "downloadVideoWithAudio": {
+    "message": "视频+音频"
+  },
+  "downloadAudioOnly": {
+    "message": "仅音频"
+  },
+  "downloadVideoOnly": {
+    "message": "仅视频"
   }
 }

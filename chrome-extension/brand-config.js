@@ -2,10 +2,11 @@
   const config = Object.freeze({
     appName: 'KenEasy BiliCC Exporter',
     shortName: 'BiliCC Exporter',
-    headerSubtitle: 'Bilibili CC subtitle exporter',
+    headerSubtitle: 'Bilibili CC + media downloader',
     logPrefix: '[KenEasy BiliCC]',
     storage: Object.freeze({
       subtitleHintPrefix: 'keneasy_bilicc_',
+      appearance: 'keneasy_bilicc_preferences_appearance',
     }),
     protocol: Object.freeze({
       fetchRequest: 'KENEASY_BILICC_FETCH_REQUEST',

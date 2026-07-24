@@ -16,7 +16,7 @@
   </p>
 
   <p>
-    <img alt="Version" src="https://img.shields.io/badge/version-1.1.0-fb7299">
+    <img alt="Version" src="https://img.shields.io/badge/version-1.2.0-fb7299">
     <img alt="Manifest" src="https://img.shields.io/badge/manifest-v3-00aeec">
     <img alt="License" src="https://img.shields.io/badge/license-MIT-27c499">
   </p>
@@ -35,6 +35,7 @@ KenEasy BiliCC Exporter is a small Chrome extension for Bilibili video pages. It
 | Bilibili page detection | Reads the active video page and resolves `BV`, `aid`, and `cid`. |
 | Subtitle discovery | Uses page-observed subtitle data first, then falls back to Bilibili web APIs. |
 | Export formats | Saves subtitle tracks as `TXT` or `SRT` with UTF-8 BOM for Windows compatibility. |
+| Video / audio download | Saves the current Bilibili video with audio (or audio-only) to your computer |
 | Store-ready footprint | Keeps the extension dependency-free and small for Chrome Web Store packaging. |
 
 ## Built-in Help & About

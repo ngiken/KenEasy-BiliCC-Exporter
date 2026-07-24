@@ -1,6 +1,8 @@
 const appState = {
   video: null,
   subtitles: null,
+  mediaOptions: null,
+  mediaJobId: null,
 };
 
 const BRAND_CONFIG = globalThis.KENEASY_BILICC_CONFIG;
@@ -9,6 +11,18 @@ const STORAGE_PREFIX = BRAND_CONFIG.storage.subtitleHintPrefix;
 const FALLBACK_TEXT = Object.freeze({
   extensionName: BRAND_CONFIG.appName,
   headerSubtitle: BRAND_CONFIG.headerSubtitle,
+  loadingKicker: 'CONNECTING TO VIDEO',
+  notBiliKicker: 'READY WHEN YOU ARE',
+  notBiliTitle: 'Open a Bilibili video',
+  currentVideoLabel: 'CURRENT VIDEO',
+  extractingKicker: 'PREPARING YOUR SUBTITLES',
+  availableTracksLabel: 'AVAILABLE TRACKS',
+  checkedVideoLabel: 'CHECKED VIDEO',
+  noSubTitle: 'No downloadable subtitles yet',
+  errorTitle: 'Something did not complete',
+  themeToLight: 'Switch to light appearance',
+  themeToDark: 'Switch to dark appearance',
+  helpLink: 'Help & guide',
   loading: 'Reading the current video...',
   notBili: `Open a bilibili.com video page before using ${BRAND_CONFIG.appName}.`,
   unknownTitle: 'Untitled video',
@@ -35,24 +49,74 @@ const FALLBACK_TEXT = Object.freeze({
   backgroundNoResponse: 'The extension background did not return a result. Reopen the extension and try again.',
   subtitleApiFailed: 'The subtitle API request failed.',
   subtitleFileFailed: 'Subtitle file download failed: HTTP {status}',
+  mediaDownloadLabel: 'MEDIA DOWNLOAD',
+  mediaQualityLabel: 'Quality',
+  mediaModeLabel: 'Mode',
+  mediaHint: 'Download the current video with audio, or audio only.',
+  mediaDownloadButton: 'Download media',
+  downloadingKicker: 'DOWNLOADING MEDIA',
+  mediaProgressStart: 'Preparing media download',
+  mediaProgressResolve: 'Resolving playable streams',
+  mediaProgressSelect: 'Selecting quality and tracks',
+  mediaProgressVideo: 'Downloading video track',
+  mediaProgressAudio: 'Downloading audio track',
+  mediaProgressRemux: 'Merging video and audio',
+  mediaProgressSave: 'Saving local file',
+  mediaProgressDone: 'Media saved',
+  mediaStepResolve: 'Resolving streams',
+  mediaStepDownload: 'Downloading tracks',
+  mediaStepSave: 'Saving local file',
+  mediaOptionsFailed: 'Unable to load media download options for this video.',
+  mediaDownloadFailed: 'Media download failed.',
+  qualityAuto: 'Auto',
+  quality8k: '8K',
+  qualityDolbyVision: 'Dolby Vision',
+  qualityHdr: 'HDR',
+  quality4k: '4K',
+  quality1080p60: '1080P60',
+  quality1080pPlus: '1080P+',
+  quality1080p: '1080P',
+  quality720p60: '720P60',
+  quality720p: '720P',
+  quality480p: '480P',
+  quality360p: '360P',
+  downloadVideoWithAudio: 'Video + audio',
+  downloadAudioOnly: 'Audio only',
+  downloadVideoOnly: 'Video only',
 });
 
 const STATE_IDS = Object.freeze({
   loading: 'stateLoading',
   notbili: 'stateNotBili',
   ready: 'stateReady',
+  downloading: 'stateDownloading',
   extracting: 'stateExtracting',
   results: 'stateResults',
   nosub: 'stateNoSub',
   error: 'stateError',
 });
 
+const MEDIA_MESSAGE_TYPES = Object.freeze({
+  resolveMediaOptions: 'RESOLVE_MEDIA_OPTIONS',
+  startMediaDownload: 'START_MEDIA_DOWNLOAD',
+  mediaDownloadProgress: 'MEDIA_DOWNLOAD_PROGRESS',
+});
+
 document.addEventListener('DOMContentLoaded', async () => {
   applyStaticText();
   document.getElementById('fetchBtn')?.addEventListener('click', fetchSubtitles);
+  document.getElementById('mediaDownloadBtn')?.addEventListener('click', downloadMedia);
   document.querySelectorAll('.btn-back').forEach((button) => {
     button.addEventListener('click', () => showState('ready'));
   });
+
+  if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {
+    chrome.runtime.onMessage.addListener((message) => {
+      if (message?.type === MEDIA_MESSAGE_TYPES.mediaDownloadProgress) {
+        handleMediaProgress(message);
+      }
+    });
+  }
 
   await initActiveTab();
 });
@@ -89,6 +153,7 @@ async function initActiveTab() {
     appState.video = video;
     populateVideoCard(video);
     showState('ready');
+    loadMediaOptions(video);
 
     if (!video.aid || !video.cid) {
       hydrateVideoDetail(video.bvid);
@@ -140,6 +205,7 @@ async function hydrateVideoDetail(bvid) {
       pages: response.data.pages || appState.video.pages,
     };
     populateVideoCard(appState.video);
+    loadMediaOptions(appState.video);
   } catch (error) {
     console.warn(`${BRAND_CONFIG.logPrefix} Video detail fallback failed.`, error);
   }
@@ -375,6 +441,184 @@ function showNoSubtitle(data) {
   showState('nosub');
 }
 
+
+async function loadMediaOptions(video) {
+  const qualitySelect = document.getElementById('mediaQualitySelect');
+  const modeSelect = document.getElementById('mediaModeSelect');
+  const downloadBtn = document.getElementById('mediaDownloadBtn');
+  if (!qualitySelect || !modeSelect || !video?.bvid) return;
+
+  qualitySelect.disabled = true;
+  modeSelect.disabled = true;
+  if (downloadBtn) downloadBtn.disabled = true;
+  setText('mediaHint', t('mediaHint'));
+
+  try {
+    const tab = await getActiveTab();
+    const response = await chrome.runtime.sendMessage({
+      type: MEDIA_MESSAGE_TYPES.resolveMediaOptions,
+      bvid: video.bvid,
+      aid: video.aid || null,
+      cid: video.cid || null,
+      tabId: tab?.id || null,
+      modeId: modeSelect.value || 'video_with_audio',
+      qualityId: 'auto',
+    });
+
+    if (!response?.success || !response.data) {
+      throw new Error(response?.error || t('mediaOptionsFailed'));
+    }
+
+    appState.mediaOptions = response.data;
+    fillSelect(qualitySelect, response.data.qualities || [], (item) => ({
+      value: item.id,
+      label: item.labelKey ? t(item.labelKey) : (item.label || item.id),
+    }), 'auto');
+    fillSelect(modeSelect, response.data.modes || [], (item) => ({
+      value: item.id,
+      label: item.labelKey ? t(item.labelKey) : (item.label || item.id),
+    }), 'video_with_audio');
+
+    qualitySelect.disabled = false;
+    modeSelect.disabled = false;
+    if (downloadBtn) downloadBtn.disabled = false;
+  } catch (error) {
+    console.warn(`${BRAND_CONFIG.logPrefix} Media options unavailable.`, error);
+    appState.mediaOptions = null;
+    fillSelect(qualitySelect, [{ id: 'auto', labelKey: 'qualityAuto' }], (item) => ({
+      value: item.id,
+      label: t(item.labelKey),
+    }), 'auto');
+    fillSelect(modeSelect, [
+      { id: 'video_with_audio', labelKey: 'downloadVideoWithAudio' },
+      { id: 'audio_only', labelKey: 'downloadAudioOnly' },
+      { id: 'video_only', labelKey: 'downloadVideoOnly' },
+    ], (item) => ({
+      value: item.id,
+      label: t(item.labelKey),
+    }), 'video_with_audio');
+    qualitySelect.disabled = false;
+    modeSelect.disabled = false;
+    if (downloadBtn) downloadBtn.disabled = false;
+    setText('mediaHint', error.message || t('mediaOptionsFailed'));
+  }
+}
+
+function fillSelect(select, items, mapItem, preferredValue) {
+  select.replaceChildren();
+  items.forEach((item) => {
+    const mapped = mapItem(item);
+    const option = document.createElement('option');
+    option.value = mapped.value;
+    option.textContent = mapped.label;
+    select.appendChild(option);
+  });
+  if (preferredValue && Array.from(select.options).some((option) => option.value === preferredValue)) {
+    select.value = preferredValue;
+  }
+}
+
+async function downloadMedia() {
+  if (!appState.video?.bvid) return;
+
+  const qualitySelect = document.getElementById('mediaQualitySelect');
+  const modeSelect = document.getElementById('mediaModeSelect');
+  const jobId = `media_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  appState.mediaJobId = jobId;
+
+  showState('downloading');
+  resetMediaProgress();
+  updateMediaProgress(5, t('mediaProgressStart'));
+  setMediaStep(1, t('mediaStepResolve'), 'active');
+
+  try {
+    const tab = await getActiveTab();
+    let video = appState.video;
+    if (!video.aid || !video.cid) {
+      const detail = await chrome.runtime.sendMessage({ type: 'FETCH_VIDEO_DETAIL', bvid: video.bvid });
+      if (detail?.success && detail.data) {
+        video = {
+          ...video,
+          aid: detail.data.aid,
+          cid: detail.data.cid || video.cid,
+          title: detail.data.title || video.title,
+        };
+        appState.video = video;
+      }
+    }
+
+    const response = await chrome.runtime.sendMessage({
+      type: MEDIA_MESSAGE_TYPES.startMediaDownload,
+      jobId,
+      bvid: video.bvid,
+      aid: video.aid || null,
+      cid: video.cid || null,
+      title: video.title || t('unknownTitle'),
+      tabId: tab?.id || null,
+      modeId: modeSelect?.value || 'video_with_audio',
+      qualityId: qualitySelect?.value || 'auto',
+    });
+
+    if (!response) throw new Error(t('backgroundNoResponse'));
+    if (!response.success) throw new Error(response.error || t('mediaDownloadFailed'));
+
+    updateMediaProgress(100, t('mediaProgressDone'));
+    setMediaStep(1, t('mediaStepResolve'), 'done');
+    setMediaStep(2, t('mediaStepDownload'), 'done');
+    setMediaStep(3, t('mediaStepSave'), 'done');
+    await wait(400);
+    showState('ready');
+    setText('mediaHint', `${t('mediaProgressDone')}: ${response.data.filename}`);
+  } catch (error) {
+    showError(error);
+  } finally {
+    appState.mediaJobId = null;
+  }
+}
+
+function handleMediaProgress(message) {
+  if (!message || message.jobId !== appState.mediaJobId) return;
+  const label = message.messageKey ? t(message.messageKey) : t('mediaProgressStart');
+  updateMediaProgress(message.percent || 0, label);
+
+  if (message.phase === 'resolve' || message.phase === 'select') {
+    setMediaStep(1, t('mediaStepResolve'), 'active');
+  } else if (message.phase === 'video' || message.phase === 'audio' || message.phase === 'remux') {
+    setMediaStep(1, t('mediaStepResolve'), 'done');
+    setMediaStep(2, t('mediaStepDownload'), 'active');
+  } else if (message.phase === 'save' || message.phase === 'done') {
+    setMediaStep(1, t('mediaStepResolve'), 'done');
+    setMediaStep(2, t('mediaStepDownload'), 'done');
+    setMediaStep(3, t('mediaStepSave'), message.phase === 'done' ? 'done' : 'active');
+  }
+}
+
+function resetMediaProgress() {
+  updateMediaProgress(0, t('mediaProgressStart'));
+  setMediaStep(1, t('mediaStepResolve'), 'active');
+  setMediaStep(2, t('mediaStepDownload'), '');
+  setMediaStep(3, t('mediaStepSave'), '');
+}
+
+function updateMediaProgress(percent, textValue) {
+  const bar = document.getElementById('mediaProgressBar');
+  const info = document.getElementById('mediaProgressInfo');
+  if (bar) {
+    bar.style.width = `${percent}%`;
+    bar.parentElement?.setAttribute('aria-valuenow', String(percent));
+  }
+  if (info) info.textContent = `${textValue} (${percent}%)`;
+}
+
+function setMediaStep(number, textValue, status = '') {
+  const row = document.getElementById(`mediaStepRow${number}`);
+  const label = document.getElementById(`mediaStep${number}`);
+  if (label) label.textContent = textValue;
+  if (!row) return;
+  row.classList.remove('active', 'done');
+  if (status) row.classList.add(status);
+}
+
 function showError(error) {
   showState('error');
   setText('errorMsg', `${t('errorPrefix')}${error.message || String(error)}`);
@@ -403,7 +647,10 @@ function setStep(number, text, status = '') {
 function updateProgress(percent, text) {
   const bar = document.getElementById('progressBar');
   const info = document.getElementById('progressInfo');
-  if (bar) bar.style.width = `${percent}%`;
+  if (bar) {
+    bar.style.width = `${percent}%`;
+    bar.parentElement?.setAttribute('aria-valuenow', String(percent));
+  }
   if (info) info.textContent = `${text} (${percent}%)`;
 }
 
@@ -455,13 +702,31 @@ function applyStaticText() {
     ? chrome.i18n.getUILanguage()
     : 'en';
   document.documentElement.lang = uiLanguage.startsWith('zh') ? 'zh-CN' : 'en';
-  setText('headerTitle', t('extensionName'));
   setText('headerSubtitle', t('headerSubtitle'));
+  setText('loadingKicker', t('loadingKicker'));
+  setText('notBiliKicker', t('notBiliKicker'));
+  setText('notBiliTitle', t('notBiliTitle'));
+  setText('currentVideoLabel', t('currentVideoLabel'));
+  setText('extractingKicker', t('extractingKicker'));
+  setText('availableTracksLabel', t('availableTracksLabel'));
+  setText('checkedVideoLabel', t('checkedVideoLabel'));
+  setText('noSubTitle', t('noSubTitle'));
+  setText('errorTitle', t('errorTitle'));
   setText('notBiliText', t('notBili'));
   setText('loadingText', t('loading'));
   setText('videoTitle', t('unknownTitle'));
   setText('durationTag', t('unknownDuration'));
-  setText('fetchBtn', t('fetchButton'));
+  setText('fetchBtnLabel', t('fetchButton'));
+  setText('mediaDownloadLabel', t('mediaDownloadLabel'));
+  setText('mediaQualityLabel', t('mediaQualityLabel'));
+  setText('mediaModeLabel', t('mediaModeLabel'));
+  setText('mediaHint', t('mediaHint'));
+  setText('mediaDownloadBtnLabel', t('mediaDownloadButton'));
+  setText('downloadingKicker', t('downloadingKicker'));
+  setText('mediaProgressInfo', `${t('mediaProgressStart')} (0%)`);
+  setText('mediaStep1', t('mediaStepResolve'));
+  setText('mediaStep2', t('mediaStepDownload'));
+  setText('mediaStep3', t('mediaStepSave'));
   setText('progressInfo', `${t('progressStart')} (0%)`);
   setText('step1', t('progressVideo'));
   setText('step2', t('progressTracks'));
@@ -475,15 +740,20 @@ function applyStaticText() {
     button.textContent = t('backButton');
   });
   setText('footerVersion', `${t('extensionName')} v${getExtensionVersion()}`);
+  setText('footerHelp', t('helpLink'));
   setText('footerGithub', t('footerGithub'));
   setText('footerStar', t('footerStar'));
+  globalThis.KenEasyTheme?.setLabels({
+    toLight: t('themeToLight'),
+    toDark: t('themeToDark'),
+  });
 }
 
 function getExtensionVersion() {
   if (typeof chrome !== 'undefined' && chrome.runtime?.getManifest) {
     return chrome.runtime.getManifest().version;
   }
-  return '1.0.4';
+  return '1.2.0';
 }
 
 function t(key, substitutions = []) {

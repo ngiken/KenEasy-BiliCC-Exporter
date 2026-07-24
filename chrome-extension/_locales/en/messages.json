@@ -3,10 +3,10 @@
     "message": "KenEasy BiliCC Exporter"
   },
   "extensionDescription": {
-    "message": "Download Bilibili CC subtitles as TXT or SRT."
+    "message": "Export Bilibili CC subtitles and download the current video with audio."
   },
   "headerSubtitle": {
-    "message": "Bilibili CC subtitle exporter"
+    "message": "Bilibili CC + media downloader"
   },
   "loading": {
     "message": "Reading the current video..."
@@ -100,5 +100,143 @@
         "content": "$1"
       }
     }
+  },
+  "loadingKicker": {
+    "message": "CONNECTING TO VIDEO"
+  },
+  "notBiliKicker": {
+    "message": "READY WHEN YOU ARE"
+  },
+  "notBiliTitle": {
+    "message": "Open a Bilibili video"
+  },
+  "currentVideoLabel": {
+    "message": "CURRENT VIDEO"
+  },
+  "extractingKicker": {
+    "message": "PREPARING YOUR SUBTITLES"
+  },
+  "availableTracksLabel": {
+    "message": "AVAILABLE TRACKS"
+  },
+  "checkedVideoLabel": {
+    "message": "CHECKED VIDEO"
+  },
+  "noSubTitle": {
+    "message": "No downloadable subtitles yet"
+  },
+  "errorTitle": {
+    "message": "Something did not complete"
+  },
+  "themeToLight": {
+    "message": "Switch to light appearance"
+  },
+  "themeToDark": {
+    "message": "Switch to dark appearance"
+  },
+  "helpLink": {
+    "message": "Help & guide"
+  },
+  "mediaDownloadLabel": {
+    "message": "MEDIA DOWNLOAD"
+  },
+  "mediaQualityLabel": {
+    "message": "Quality"
+  },
+  "mediaModeLabel": {
+    "message": "Mode"
+  },
+  "mediaHint": {
+    "message": "Download the current video with audio, or audio only."
+  },
+  "mediaDownloadButton": {
+    "message": "Download media"
+  },
+  "downloadingKicker": {
+    "message": "DOWNLOADING MEDIA"
+  },
+  "mediaProgressStart": {
+    "message": "Preparing media download"
+  },
+  "mediaProgressResolve": {
+    "message": "Resolving playable streams"
+  },
+  "mediaProgressSelect": {
+    "message": "Selecting quality and tracks"
+  },
+  "mediaProgressVideo": {
+    "message": "Downloading video track"
+  },
+  "mediaProgressAudio": {
+    "message": "Downloading audio track"
+  },
+  "mediaProgressRemux": {
+    "message": "Merging video and audio"
+  },
+  "mediaProgressSave": {
+    "message": "Saving local file"
+  },
+  "mediaProgressDone": {
+    "message": "Media saved"
+  },
+  "mediaStepResolve": {
+    "message": "Resolving streams"
+  },
+  "mediaStepDownload": {
+    "message": "Downloading tracks"
+  },
+  "mediaStepSave": {
+    "message": "Saving local file"
+  },
+  "mediaOptionsFailed": {
+    "message": "Unable to load media download options for this video."
+  },
+  "mediaDownloadFailed": {
+    "message": "Media download failed."
+  },
+  "qualityAuto": {
+    "message": "Auto"
+  },
+  "quality8k": {
+    "message": "8K"
+  },
+  "qualityDolbyVision": {
+    "message": "Dolby Vision"
+  },
+  "qualityHdr": {
+    "message": "HDR"
+  },
+  "quality4k": {
+    "message": "4K"
+  },
+  "quality1080p60": {
+    "message": "1080P60"
+  },
+  "quality1080pPlus": {
+    "message": "1080P+"
+  },
+  "quality1080p": {
+    "message": "1080P"
+  },
+  "quality720p60": {
+    "message": "720P60"
+  },
+  "quality720p": {
+    "message": "720P"
+  },
+  "quality480p": {
+    "message": "480P"
+  },
+  "quality360p": {
+    "message": "360P"
+  },
+  "downloadVideoWithAudio": {
+    "message": "Video + audio"
+  },
+  "downloadAudioOnly": {
+    "message": "Audio only"
+  },
+  "downloadVideoOnly": {
+    "message": "Video only"
   }
 }
