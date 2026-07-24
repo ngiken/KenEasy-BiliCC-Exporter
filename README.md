@@ -51,11 +51,15 @@ Use the **Help & guide** link at the bottom of the popup to open the extension's
 
 The help page uses only packaged local assets, supports Chinese and English, and follows the same light/dark appearance setting as the popup.
 
-## Demo
+## Demo / Usage Intro
+
+Watch the latest usage walkthrough for the current popup UI, including subtitle export, media download, and update entry points:
+
+**[Usage intro video (UseDemo.mp4)](UseDemo.mp4)**
 
 ![KenEasy BiliCC Exporter usage demo](assets/use-demo.gif)
 
-Full usage video: [UseDemo.mp4](UseDemo.mp4)
+The short GIF above is a quick preview. Open UseDemo.mp4 for the full screen recording of the real extension workflow.
 
 ## Install Locally
 
