@@ -98,6 +98,8 @@ downloads: Saves exported subtitle files, downloaded media files, and optional u
 
 declarativeNetRequestWithHostAccess: Adds the required Referer header for Bilibili media CDN requests so video/audio downloads can complete successfully.
 
+offscreen: In Manifest V3, Service Workers lack access to DOM APIs like URL.createObjectURL. The offscreen document API (with BLOBS reason) is used to create object URLs and trigger chrome.downloads for large media video/audio files safely without holding large binary blobs in the service worker.
+
 Host permissions bilibili/bilivideo/hdslb/biliapi: Needed to read the current video page, subtitle endpoints, and media stream hosts used by Bilibili playback.
 
 Host permissions github.com/api.github.com/githubusercontent: Used only for optional version checks and download links for dual-distribution / manual-install users. Store-installed users primarily rely on Chrome Web Store auto-update.
