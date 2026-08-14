@@ -20,6 +20,9 @@
       'hdslb.com',
       'biliapi.net',
       'biliapi.com',
+      'szbdyd.com',
+      'acgvideo.com',
+      'ourvideo.com',
     ]),
     resourceTypes: Object.freeze([
       'xmlhttprequest',
@@ -33,14 +36,14 @@
   });
 
   function buildSessionRules() {
-    return rules.requestDomains.map((domain, index) => ({
-      id: rules.dnrRuleIdBase + index,
+    const domainRules = rules.requestDomains.map((domain, index) => ({
+      id: rules.dnrRuleIdBase + index + 1,
       priority: 1,
       action: {
         type: 'modifyHeaders',
         requestHeaders: [
           { header: 'Referer', operation: 'set', value: rules.pageReferer },
-          { header: 'Origin', operation: 'set', value: rules.pageOrigin },
+          { header: 'User-Agent', operation: 'set', value: rules.userAgent },
         ],
       },
       condition: {
@@ -48,6 +51,32 @@
         resourceTypes: rules.resourceTypes.slice(),
       },
     }));
+
+    // Universal rule for background service worker / offscreen media downloads (-1 tab ID)
+    domainRules.push({
+      id: rules.dnrRuleIdBase,
+      priority: 2,
+      action: {
+        type: 'modifyHeaders',
+        requestHeaders: [
+          { header: 'Referer', operation: 'set', value: rules.pageReferer },
+          { header: 'User-Agent', operation: 'set', value: rules.userAgent },
+        ],
+      },
+      condition: {
+        tabIds: [-1],
+        excludedRequestDomains: [
+          'api.github.com',
+          'github.com',
+          'raw.githubusercontent.com',
+          'objects.githubusercontent.com',
+          'release-assets.githubusercontent.com',
+        ],
+        resourceTypes: rules.resourceTypes.slice(),
+      },
+    });
+
+    return domainRules;
   }
 
   async function ensureCdnHeaderRules() {

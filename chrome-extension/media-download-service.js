@@ -27,13 +27,11 @@
   }
 
   function cdnProfile() {
-    // Referer/Origin are enforced by KenEasyMediaCdnRules via DNR.
-    // Setting them here is unreliable in extension workers (forbidden headers).
+    // Referer/Origin/UA are enforced by KenEasyMediaCdnRules via DNR.
     return {
       credentials: 'include',
       cache: 'no-cache',
       headers: {
-        'User-Agent': DESKTOP_UA,
         Accept: '*/*',
       },
     };
@@ -46,6 +44,10 @@
   }
 
   function emitProgress(jobId, payload) {
+    const job = activeJobs.get(jobId);
+    if (job) {
+      job.lastState = payload;
+    }
     const message = {
       type: CONFIG.messages.mediaDownloadProgress,
       jobId,
@@ -248,33 +250,92 @@
     return `${title} - ${quality} - ${modeTag}.${mode.extension}`;
   }
 
-  async function saveBuffer(buffer, filename, mime) {
-    const blob = new Blob([buffer], { type: mime });
-    const objectUrl = URL.createObjectURL(blob);
+  const DB_NAME = 'KenEasyMediaStore';
+  const DB_VERSION = 1;
+  const STORE_NAME = 'buffers';
 
-    try {
-      const downloadId = await new Promise((resolve, reject) => {
-        chrome.downloads.download(
-          {
-            url: objectUrl,
-            filename,
-            saveAs: false,
-            conflictAction: 'uniquify',
-          },
-          (id) => {
-            if (chrome.runtime.lastError || id === undefined) {
-              reject(new Error(chrome.runtime.lastError?.message || 'Download API failed'));
-              return;
-            }
-            resolve(id);
-          },
-        );
-      });
-      return { downloadId, filename };
-    } finally {
-      // Keep URL alive briefly so the download manager can acquire it.
-      setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
+  function openMediaDB() {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open(DB_NAME, DB_VERSION);
+      request.onupgradeneeded = () => {
+        const db = request.result;
+        if (!db.objectStoreNames.contains(STORE_NAME)) {
+          db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+        }
+      };
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error || new Error('Failed to open IndexedDB'));
+    });
+  }
+
+  async function putMediaBuffer(id, buffer) {
+    const db = await openMediaDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, 'readwrite');
+      const store = tx.objectStore(STORE_NAME);
+      store.put({ id, buffer });
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error || new Error('IndexedDB put failed'));
+    });
+  }
+
+  async function saveBuffer(buffer, filename, mime) {
+    // If URL.createObjectURL is available in the current context, use it directly.
+    if (typeof URL !== 'undefined' && typeof URL.createObjectURL === 'function') {
+      const blob = new Blob([buffer], { type: mime });
+      const objectUrl = URL.createObjectURL(blob);
+
+      try {
+        const downloadId = await new Promise((resolve, reject) => {
+          chrome.downloads.download(
+            {
+              url: objectUrl,
+              filename,
+              saveAs: false,
+              conflictAction: 'uniquify',
+            },
+            (id) => {
+              if (chrome.runtime.lastError || id === undefined) {
+                reject(new Error(chrome.runtime.lastError?.message || 'Download API failed'));
+                return;
+              }
+              resolve(id);
+            },
+          );
+        });
+        return { downloadId, filename };
+      } finally {
+        setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
+      }
     }
+
+    // In Manifest V3 Service Worker: Store buffer in IndexedDB and delegate ObjectURL download to Offscreen Document.
+    const tempId = `dl_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    await putMediaBuffer(tempId, buffer);
+
+    if (root.setupOffscreenDocument) {
+      await root.setupOffscreenDocument();
+    }
+
+    const response = await new Promise((resolve, reject) => {
+      chrome.runtime.sendMessage(
+        {
+          type: 'OFFSCREEN_SAVE_BUFFER',
+          id: tempId,
+          filename,
+          mime,
+        },
+        (res) => {
+          if (chrome.runtime.lastError) {
+            return reject(new Error(chrome.runtime.lastError.message));
+          }
+          if (res?.success) return resolve(res);
+          return reject(new Error(res?.error || 'Save buffer failed in offscreen document.'));
+        },
+      );
+    });
+
+    return { downloadId: response.downloadId || 1, filename };
   }
 
   async function materializeMedia({ mode, plan, onPhaseProgress, tabId }) {
@@ -361,7 +422,7 @@
       throw new Error('Download job already running.');
     }
 
-    const controller = { cancelled: false };
+    const controller = { cancelled: false, request };
     activeJobs.set(jobId, controller);
 
     try {
@@ -439,9 +500,20 @@
     }
   }
 
+  function getActiveJobs() {
+    const jobs = [];
+    for (const [jobId, job] of activeJobs.entries()) {
+      if (job.lastState) {
+        jobs.push({ jobId, request: job.request, state: job.lastState });
+      }
+    }
+    return jobs;
+  }
+
   root.KenEasyMediaDownloadService = Object.freeze({
     resolveMediaOptions,
     startMediaDownload,
+    getActiveJobs,
     messageTypes: CONFIG.messages,
   });
 }(globalThis));

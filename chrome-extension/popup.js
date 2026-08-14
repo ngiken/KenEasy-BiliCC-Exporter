@@ -64,6 +64,8 @@ const FALLBACK_TEXT = Object.freeze({
   mediaProgressRemux: 'Merging video and audio',
   mediaProgressSave: 'Saving local file',
   mediaProgressDone: 'Media saved',
+  mediaDoneKicker: 'DOWNLOAD COMPLETE',
+  mediaDoneBtn: 'Done & Return',
   mediaStepResolve: 'Resolving streams',
   mediaStepDownload: 'Downloading tracks',
   mediaStepSave: 'Saving local file',
@@ -113,6 +115,7 @@ const MEDIA_MESSAGE_TYPES = Object.freeze({
   resolveMediaOptions: 'RESOLVE_MEDIA_OPTIONS',
   startMediaDownload: 'START_MEDIA_DOWNLOAD',
   mediaDownloadProgress: 'MEDIA_DOWNLOAD_PROGRESS',
+  getActiveJobs: 'GET_ACTIVE_JOBS',
 });
 
 const UPDATE_MESSAGE_TYPES = Object.freeze({
@@ -127,7 +130,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('footerUpdateBtn')?.addEventListener('click', () => handleUpdateButtonClick());
   document.getElementById('updateNowBtn')?.addEventListener('click', () => applyLatestUpdate());
   document.querySelectorAll('.btn-back').forEach((button) => {
-    button.addEventListener('click', () => showState('ready'));
+    button.addEventListener('click', () => {
+      appState.mediaJobId = null;
+      showState('ready');
+    });
   });
 
   if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {
@@ -175,6 +181,22 @@ async function initActiveTab() {
     const video = await getVideoInfoFromTab(tab);
     appState.video = video;
     populateVideoCard(video);
+
+    try {
+      const jobsRes = await chrome.runtime.sendMessage({ type: MEDIA_MESSAGE_TYPES.getActiveJobs });
+      if (jobsRes?.success && jobsRes.data?.length > 0) {
+        const myJob = jobsRes.data.find(j => j.request?.bvid === video.bvid);
+        if (myJob && myJob.state) {
+          appState.mediaJobId = myJob.jobId;
+          showState('downloading');
+          handleMediaProgress({ jobId: myJob.jobId, ...myJob.state });
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to restore active jobs:', e);
+    }
+
     showState('ready');
     loadMediaOptions(video);
 
@@ -746,13 +768,7 @@ async function downloadMedia() {
     if (!response) throw new Error(t('backgroundNoResponse'));
     if (!response.success) throw new Error(response.error || t('mediaDownloadFailed'));
 
-    updateMediaProgress(100, t('mediaProgressDone'));
-    setMediaStep(1, t('mediaStepResolve'), 'done');
-    setMediaStep(2, t('mediaStepDownload'), 'done');
-    setMediaStep(3, t('mediaStepSave'), 'done');
-    await wait(400);
-    showState('ready');
-    setText('mediaHint', `${t('mediaProgressDone')}: ${response.data.filename}`);
+    setMediaDoneState(response.data?.filename);
   } catch (error) {
     showError(error);
   } finally {
@@ -760,8 +776,46 @@ async function downloadMedia() {
   }
 }
 
+function setMediaDoneState(filename) {
+  const spinner = document.getElementById('mediaSpinner');
+  const doneVisual = document.getElementById('mediaDoneVisual');
+  const kicker = document.getElementById('downloadingKicker');
+  const btnLabel = document.getElementById('mediaBackBtnLabel');
+
+  if (spinner) spinner.hidden = true;
+  if (doneVisual) doneVisual.hidden = false;
+  if (kicker) kicker.textContent = t('mediaDoneKicker');
+  if (btnLabel) btnLabel.textContent = t('mediaDoneBtn');
+
+  updateMediaProgress(100, t('mediaProgressDone'));
+  setMediaStep(1, t('mediaStepResolve'), 'done');
+  setMediaStep(2, t('mediaStepDownload'), 'done');
+  setMediaStep(3, t('mediaStepSave'), 'done');
+
+  if (filename) {
+    const info = document.getElementById('mediaProgressInfo');
+    if (info) info.textContent = `${t('mediaProgressDone')} (100%)\n${filename}`;
+    setText('mediaHint', `${t('mediaProgressDone')}: ${filename}`);
+  }
+}
+
 function handleMediaProgress(message) {
-  if (!message || message.jobId !== appState.mediaJobId) return;
+  if (!message || (appState.mediaJobId && message.jobId && message.jobId !== appState.mediaJobId)) return;
+
+  if (message.phase === 'done' || message.percent === 100) {
+    setMediaDoneState(message.filename);
+    return;
+  }
+
+  const spinner = document.getElementById('mediaSpinner');
+  const doneVisual = document.getElementById('mediaDoneVisual');
+  const kicker = document.getElementById('downloadingKicker');
+  const btnLabel = document.getElementById('mediaBackBtnLabel');
+  if (spinner) spinner.hidden = false;
+  if (doneVisual) doneVisual.hidden = true;
+  if (kicker) kicker.textContent = t('downloadingKicker');
+  if (btnLabel) btnLabel.textContent = t('backButton');
+
   const label = message.messageKey ? t(message.messageKey) : t('mediaProgressStart');
   updateMediaProgress(message.percent || 0, label);
 
@@ -770,14 +824,24 @@ function handleMediaProgress(message) {
   } else if (message.phase === 'video' || message.phase === 'audio' || message.phase === 'remux') {
     setMediaStep(1, t('mediaStepResolve'), 'done');
     setMediaStep(2, t('mediaStepDownload'), 'active');
-  } else if (message.phase === 'save' || message.phase === 'done') {
+  } else if (message.phase === 'save') {
     setMediaStep(1, t('mediaStepResolve'), 'done');
     setMediaStep(2, t('mediaStepDownload'), 'done');
-    setMediaStep(3, t('mediaStepSave'), message.phase === 'done' ? 'done' : 'active');
+    setMediaStep(3, t('mediaStepSave'), 'active');
   }
 }
 
 function resetMediaProgress() {
+  const spinner = document.getElementById('mediaSpinner');
+  const doneVisual = document.getElementById('mediaDoneVisual');
+  const kicker = document.getElementById('downloadingKicker');
+  const btnLabel = document.getElementById('mediaBackBtnLabel');
+
+  if (spinner) spinner.hidden = false;
+  if (doneVisual) doneVisual.hidden = true;
+  if (kicker) kicker.textContent = t('downloadingKicker');
+  if (btnLabel) btnLabel.textContent = t('backButton');
+
   updateMediaProgress(0, t('mediaProgressStart'));
   setMediaStep(1, t('mediaStepResolve'), 'active');
   setMediaStep(2, t('mediaStepDownload'), '');
@@ -928,6 +992,7 @@ function applyStaticText() {
   document.querySelectorAll('.btn-back').forEach((button) => {
     button.textContent = t('backButton');
   });
+  setText('mediaBackBtnLabel', t('backButton'));
   setText('footerVersion', `${t('extensionName')} v${getExtensionVersion()}`);
   setText('footerHelp', t('helpLink'));
   setText('footerGithub', t('footerGithub'));
@@ -942,7 +1007,7 @@ function getExtensionVersion() {
   if (typeof chrome !== 'undefined' && chrome.runtime?.getManifest) {
     return chrome.runtime.getManifest().version;
   }
-  return '1.3.1';
+  return '2.0.0';
 }
 
 function t(key, substitutions = []) {

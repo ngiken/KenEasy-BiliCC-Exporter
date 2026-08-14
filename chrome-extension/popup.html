@@ -109,7 +109,8 @@
 
             <section id="stateDownloading" hidden aria-live="polite">
         <div class="status-box extracting-box">
-          <div class="spinner" aria-hidden="true"></div>
+          <div class="spinner" id="mediaSpinner" aria-hidden="true"></div>
+          <div class="status-visual status-visual-done" id="mediaDoneVisual" hidden aria-hidden="true"><span>✓</span></div>
           <div class="status-kicker" id="downloadingKicker">DOWNLOADING MEDIA</div>
           <div class="progress-bar-container" role="progressbar" aria-valuemin="0" aria-valuemax="100">
             <div class="progress-bar" id="mediaProgressBar"></div>
@@ -120,6 +121,9 @@
             <div class="step" id="mediaStepRow2"><div class="step-dot"></div><span id="mediaStep2">Downloading tracks</span></div>
             <div class="step" id="mediaStepRow3"><div class="step-dot"></div><span id="mediaStep3">Saving local file</span></div>
           </div>
+          <button class="button btn-secondary btn-back" id="mediaBackBtn" type="button" style="margin-top: 14px;">
+            <span id="mediaBackBtnLabel">返回</span>
+          </button>
         </div>
       </section>
 
@@ -181,7 +185,7 @@
 
     <footer class="footer">
       <div class="footer-left">
-        <span id="footerVersion">KenEasy BiliCC Exporter v1.3.0</span>
+        <span id="footerVersion">KenEasy BiliCC Exporter v2.0.0</span>
         <button type="button" class="footer-update-btn" id="footerUpdateBtn">Update</button>
       </div>
       <div class="footer-right">

@@ -36,6 +36,7 @@ const MESSAGES = Object.freeze({
   fetchFromPage: 'FETCH_API_FROM_PAGE',
   resolveMediaOptions: globalThis.KENEASY_MEDIA_DOWNLOAD_CONFIG.messages.resolveMediaOptions,
   startMediaDownload: globalThis.KENEASY_MEDIA_DOWNLOAD_CONFIG.messages.startMediaDownload,
+  getActiveJobs: 'GET_ACTIVE_JOBS',
   checkForUpdate: globalThis.KENEASY_UPDATE_CONFIG.messages.checkForUpdate,
   applyUpdate: globalThis.KENEASY_UPDATE_CONFIG.messages.applyUpdate,
 });
@@ -262,7 +263,52 @@ const mediaHelpers = Object.freeze({
   signWbi,
 });
 
+let creatingOffscreen = null;
+async function setupOffscreenDocument(path = 'offscreen.html') {
+  if (chrome.offscreen && typeof chrome.offscreen.hasDocument === 'function') {
+    if (await chrome.offscreen.hasDocument()) {
+      return;
+    }
+  } else if (chrome.runtime && typeof chrome.runtime.getContexts === 'function') {
+    const existingContexts = await chrome.runtime.getContexts({
+      contextTypes: ['OFFSCREEN_DOCUMENT'],
+    });
+    if (existingContexts.length > 0) {
+      return;
+    }
+  }
+
+  if (creatingOffscreen) {
+    await creatingOffscreen;
+    return;
+  }
+
+  try {
+    creatingOffscreen = chrome.offscreen.createDocument({
+      url: path,
+      reasons: [chrome.offscreen.Reason?.BLOBS || 'BLOBS'],
+      justification: 'Perform media downloading, fMP4 remuxing, and URL.createObjectURL for downloads',
+    });
+    await creatingOffscreen;
+  } catch (error) {
+    if (!error.message?.includes('Only a single offscreen document may be created')) {
+      throw error;
+    }
+  } finally {
+    creatingOffscreen = null;
+  }
+}
+
+globalThis.setupOffscreenDocument = setupOffscreenDocument;
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.type === 'SIGN_WBI') {
+    signWbi(request.params)
+      .then((data) => sendResponse({ success: true, data }))
+      .catch((error) => sendResponse({ success: false, error: error.message || String(error) }));
+    return true;
+  }
+
   if (request.type === MESSAGES.fetchSubtitles) {
     handleFetchSubtitles(request)
       .then((data) => sendResponse({ success: true, data }))
@@ -291,6 +337,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true;
   }
 
+  if (request.type === MESSAGES.getActiveJobs) {
+    const jobs = globalThis.KenEasyMediaDownloadService.getActiveJobs();
+    sendResponse({ success: true, data: jobs });
+    return true;
+  }
 
   if (request.type === MESSAGES.checkForUpdate) {
     globalThis.KenEasyUpdateService.checkForUpdate({ force: !!request.force })
@@ -308,3 +359,4 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
   return false;
 });
+

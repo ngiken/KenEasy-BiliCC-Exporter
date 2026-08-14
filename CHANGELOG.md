@@ -1,6 +1,14 @@
 # Changelog
 
-## 1.3.1 - 2026-07-24
+## 2.0.0 - 2026-08-15
+
+Major milestone: Fully stable, safe, and resilient end-to-end media downloader with persistent state restoration.
+
+- **Resilient Media Download Architecture**: Implements an Offscreen Document DOM bridge + IndexedDB chunk storage for seamless, Manifest V3 compliant `URL.createObjectURL` and browser downloads without service worker memory limits.
+- **Universal CDN Anti-Hotlinking Bypass**: Re-engineered `declarativeNetRequest` rules with Service Worker request matching (`tabIds: [-1]`), attaching required `Referer` and desktop `User-Agent` while eliminating cross-origin CORS conflicts for all Bilibili CDN domains and edge IPs.
+- **Persistent Background State Restoration**: Download progress, phase states, and active jobs are now tracked in background service worker cache; reopening or navigating away from the popup dynamically restores live progress.
+- **Enhanced Download Completion UX**: Added visual download complete indicators, clear "已下载完毕" status display, and a dedicated dismiss/return button so users can seamlessly dismiss the downloading screen without restarting the extension.
+- **Pure Local fMP4 Remuxing**: Zero-dependency local merging of separated high-definition video and audio tracks directly in the browser into a standard playable MP4 file.
 
 Download reliability and UI contrast fix.
 

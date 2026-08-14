@@ -179,6 +179,12 @@
   "mediaProgressDone": {
     "message": "Media saved"
   },
+  "mediaDoneKicker": {
+    "message": "DOWNLOAD COMPLETE"
+  },
+  "mediaDoneBtn": {
+    "message": "Done & Return"
+  },
   "mediaStepResolve": {
     "message": "Resolving streams"
   },
