@@ -116,6 +116,17 @@
   }
 
   async function checkForUpdate(options) {
+    const manifest = chrome?.runtime?.getManifest?.();
+    if (manifest?.update_url && manifest.update_url.includes('google.com')) {
+      return {
+        currentVersion: getCurrentVersion(),
+        latestVersion: getCurrentVersion(),
+        hasUpdate: false,
+        isStore: true,
+        checkedAt: Date.now(),
+      };
+    }
+
     const force = !!(options && options.force);
     const keys = [CONFIG.storage.lastCheckAt, CONFIG.storage.lastResult];
     const cached = await readStorage(keys);

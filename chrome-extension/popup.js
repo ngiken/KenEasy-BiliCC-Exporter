@@ -144,10 +144,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  await Promise.all([
-    initActiveTab(),
-    checkForUpdates({ force: false, silent: true }),
-  ]);
+  if (isStoreInstalled()) {
+    const updateBtn = document.getElementById('footerUpdateBtn');
+    if (updateBtn) updateBtn.style.display = 'none';
+    const banner = document.getElementById('updateBanner');
+    if (banner) banner.hidden = true;
+    await initActiveTab();
+  } else {
+    await Promise.all([
+      initActiveTab(),
+      checkForUpdates({ force: false, silent: true }),
+    ]);
+  }
 });
 
 if (typeof chrome !== 'undefined' && chrome.tabs) {
@@ -518,6 +526,11 @@ async function checkForUpdates({ force = false, silent = false } = {}) {
 function renderUpdateState(info) {
   const banner = document.getElementById('updateBanner');
   const button = document.getElementById('footerUpdateBtn');
+  if (isStoreInstalled()) {
+    if (banner) banner.hidden = true;
+    if (button) button.style.display = 'none';
+    return;
+  }
   if (!info) {
     if (banner) banner.hidden = true;
     if (button) {
@@ -1003,11 +1016,20 @@ function applyStaticText() {
   });
 }
 
+function isStoreInstalled() {
+  try {
+    const manifest = chrome?.runtime?.getManifest?.();
+    return Boolean(manifest?.update_url && manifest.update_url.includes('google.com'));
+  } catch {
+    return false;
+  }
+}
+
 function getExtensionVersion() {
   if (typeof chrome !== 'undefined' && chrome.runtime?.getManifest) {
     return chrome.runtime.getManifest().version;
   }
-  return '2.0.0';
+  return '2.0.1';
 }
 
 function t(key, substitutions = []) {

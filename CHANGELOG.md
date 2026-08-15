@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.0.1 - 2026-08-15
+
+Smart update channel decoupling & refreshed demonstration showcase.
+
+- **Store-Aware Update Channel Decoupling**: Automatically detects whether the extension was installed via Chrome Web Store or unpacked developer mode; suppresses manual zip update prompts for store users so Chrome can handle background auto-updates smoothly.
+- **Refreshed Core Feature Demonstration Videos**: Replaced legacy single-video demo with 3 dedicated walkthrough screen recordings in crisp MP4 format:
+  1. Subtitle extraction & export workflow (`demo-subtitle-export.mp4`)
+  2. High-definition video & audio download (`demo-media-download.mp4`)
+  3. Persistent background download & interruption-free state recovery (`demo-persistent-background-download.mp4`)
+
 ## 2.0.0 - 2026-08-15
 
 Major milestone: Fully stable, safe, and resilient end-to-end media downloader with persistent state restoration.

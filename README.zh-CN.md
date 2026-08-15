@@ -4,7 +4,7 @@
   <h1>KenEasy BiliCC Exporter</h1>
 
   <p>
-    从 Bilibili / B站当前视频页读取 CC 字幕并导出为 <code>TXT</code> / <code>SRT</code>，支持下载当前视频（含音频），并提供一键更新到最新版。
+    从 Bilibili / B站当前视频页读取 CC 字幕并导出为 <code>TXT</code> / <code>SRT</code>，支持高清音视频下载与后台常态化断点状态恢复。
   </p>
 
   <p>
@@ -17,7 +17,7 @@
 
   <p>
     <a href="https://chromewebstore.google.com/detail/keneasy-bilicc-exporter/nifdbandikjjmgkagghonjjckmpccgng?hl=zh-CN"><img alt="Chrome Web Store" src="https://img.shields.io/badge/Chrome_%E5%BA%94%E7%94%A8%E5%95%86%E5%BA%97-%E5%AE%98%E6%96%B9%E4%B8%8A%E6%9E%B6-4285F4?logo=googlechrome&logoColor=white"></a>
-    <img alt="Version" src="https://img.shields.io/badge/version-2.0.0-fb7299">
+    <img alt="Version" src="https://img.shields.io/badge/version-2.0.1-fb7299">
     <img alt="Manifest" src="https://img.shields.io/badge/manifest-v3-00aeec">
     <img alt="License" src="https://img.shields.io/badge/license-MIT-27c499">
   </p>
@@ -43,11 +43,15 @@
 6. 选择解压出来的 `KenEasy-BiliCC-Exporter` 文件夹。
 7. 打开任意 Bilibili 视频页面（如 `https://www.bilibili.com/video/BV...`）即可开始使用。
 
-## 项目简介
+## 🎬 核心功能实操演示视频
 
-KenEasy BiliCC Exporter 是一个轻量 Chrome 扩展，面向 Bilibili 视频页面使用。它会识别当前视频的 `BV`、读取可用的 CC 字幕轨道，并保存为纯文本或标准 SRT 字幕文件。
+通过实操录屏直观了解各项核心功能与使用流程：
 
-![KenEasy BiliCC Exporter 界面演示](assets/popup-demo.png)
+| 核心功能与操作流程 | 演示视频 | 功能亮点说明 |
+| :--- | :--- | :--- |
+| **1. CC 字幕提取与导出全流程** | 📺 **[点击观看实操录屏 (MP4)](assets/videos/demo-subtitle-export.mp4)** | 自动识别当前 B 站视频的所有 CC 字幕轨道，支持实时预览并导出为兼容性良好的 `TXT` 或 `SRT` 文件。 |
+| **2. 高清音视频媒体下载与本地合流** | 📺 **[点击观看实操录屏 (MP4)](assets/videos/demo-media-download.mp4)** | 支持自定义分辨率（1080P、720P 等）与下载模式（音视频合流、纯音频、纯视频），零外部依赖在浏览器端完成 MP4 合并。 |
+| **3. 后台常态化下载与随开随走断点恢复** | 📺 **[点击观看实操录屏 (MP4)](assets/videos/demo-persistent-background-download.mp4)** | 任务全程由后台 Service Worker 托管，下载中途随意关闭或切换弹窗绝不中断，重新打开即刻无缝恢复最新进度。 |
 
 ## 核心能力
 
@@ -56,19 +60,10 @@ KenEasy BiliCC Exporter 是一个轻量 Chrome 扩展，面向 Bilibili 视频�
 | B站视频识别 | 自动读取当前视频页，并解析 `BV`、`aid`、`cid`。 |
 | 字幕轨道发现 | 优先使用页面已加载的字幕数据，失败时回退到 Bilibili Web API。 |
 | TXT / SRT 导出 | 支持保存纯文本和标准字幕文件，并使用 UTF-8 BOM 兼容 Windows 工具。 |
-| 视频 / 音频下载 | 将当前 B 站视频连同音频（或仅音频）保存到本地 |
-| 一键更新 | 检查 GitHub Release，下载最新安装包并引导重新加载 |
+| 视频 / 音频下载 | 将当前 B 站视频连同音频（或仅音频）保存到本地。 |
+| 后台常态化托管 | Service Worker + Offscreen DOM 架构，关闭弹窗不中断下载，随时重新打开恢复。 |
+| 智能更新解耦 | 商店用户享受 Chrome 官方静默自动升级；离线开发者用户享受 GitHub Release 检查。 |
 | 适合上架 | 扩展体积小，无第三方运行依赖，方便 Chrome Web Store 打包。 |
-
-## 使用介绍 / 使用演示
-
-最新录制的完整使用介绍影片（对应当前弹窗界面：字幕导出、视频下载、检查更新）：
-
-**[使用介绍影片（UseDemo.mp4）](UseDemo.mp4)**
-
-![KenEasy BiliCC Exporter 使用演示](assets/use-demo.gif)
-
-上方 GIF 是快速预览；点开 UseDemo.mp4 可观看真实扩展操作录屏。
 
 ## 扩展内帮助与关于
 
