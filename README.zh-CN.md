@@ -16,11 +16,32 @@
   </p>
 
   <p>
+    <a href="https://chromewebstore.google.com/detail/keneasy-bilicc-exporter/nifdbandikjjmgkagghonjjckmpccgng?hl=zh-CN"><img alt="Chrome Web Store" src="https://img.shields.io/badge/Chrome_%E5%BA%94%E7%94%A8%E5%95%86%E5%BA%97-%E5%AE%98%E6%96%B9%E4%B8%8A%E6%9E%B6-4285F4?logo=googlechrome&logoColor=white"></a>
     <img alt="Version" src="https://img.shields.io/badge/version-2.0.0-fb7299">
     <img alt="Manifest" src="https://img.shields.io/badge/manifest-v3-00aeec">
     <img alt="License" src="https://img.shields.io/badge/license-MIT-27c499">
   </p>
 </div>
+
+## 🚀 安装方式
+
+### 方式一：Chrome 官方应用商店安装（推荐）
+
+通过 Chrome Web Store 官方商店一键点击安装，后续支持自动静默更新，体验最省心（无需手动下载解压）：
+
+👉 **[前往 Chrome Web Store 官方商店安装 KenEasy BiliCC Exporter](https://chromewebstore.google.com/detail/keneasy-bilicc-exporter/nifdbandikjjmgkagghonjjckmpccgng?hl=zh-CN)**
+
+### 方式二：本地开发者模式手动安装
+
+若无法直接访问 Chrome 应用商店，可选择离线手动安装：
+
+1. 到 [最新 Release 页面](https://github.com/ngiken/KenEasy-BiliCC-Exporter/releases/latest) 下载 `KenEasy-BiliCC-Exporter-manual-install.zip`。
+2. 解压下载的 zip 文件。
+3. 在 Chrome 浏览器地址栏打开 `chrome://extensions/`。
+4. 开启右上角的「开发者模式」。
+5. 点击左上角的「加载已解压的扩展程序」。
+6. 选择解压出来的 `KenEasy-BiliCC-Exporter` 文件夹。
+7. 打开任意 Bilibili 视频页面（如 `https://www.bilibili.com/video/BV...`）即可开始使用。
 
 ## 项目简介
 
@@ -61,28 +82,6 @@ KenEasy BiliCC Exporter 是一个轻量 Chrome 扩展，面向 Bilibili 视频�
 
 帮助页面使用扩展内的本地资源，无需额外网络请求，并支持中英文和深浅色外观。
 
-## 使用方法
-
-1. 打开一个 Bilibili 视频页面，例如 `https://www.bilibili.com/video/BV...`。
-2. 点击浏览器右上角的 KenEasy BiliCC Exporter 扩展图标。
-3. 点击「提取字幕」。
-4. 选择需要的字幕轨道。
-5. 点击 `TXT` 或 `SRT` 下载。
-
-如果视频没有 CC 字幕，或者字幕需要登录后才能读取，扩展会显示对应提示。
-
-## 本地安装
-
-Chrome 不能直接拖拽安装从 GitHub 下载的 `.crx`，也不能把 `.zip` 直接当扩展安装。
-
-1. 到最新 Release 下载 `KenEasy-BiliCC-Exporter-manual-install.zip`。
-2. 解压这个 zip 文件。
-3. 打开 `chrome://extensions/`。
-4. 开启「开发者模式」。
-5. 点击「加载已解压的扩展程序」。
-6. 选择解压出来的 `KenEasy-BiliCC-Exporter` 文件夹。
-7. 打开 Bilibili 视频页后使用 KenEasy BiliCC Exporter。
-
 ## 打包
 
 打包时要压缩 `chrome-extension` 文件夹里面的内容，不要把外层文件夹一起压进去。
@@ -91,71 +90,38 @@ Chrome 不能直接拖拽安装从 GitHub 下载的 `.crx`，也不能把 `.zip`
 python scratch/zip_extension.py
 ```
 
-Chrome Web Store 上传包是：
+隐私政策：[PRIVACY.md](PRIVACY.md)
 
-```text
-KenEasy-BiliCC-Exporter-store.zip
-```
+商店发布检查清单：[docs/CHROME_WEB_STORE.md](docs/CHROME_WEB_STORE.md)
 
 ## 架构说明
 
-这个扩展按分层、解耦、规则化和数据化的方式组织。
+扩展采用分层设计，解耦清晰，规则与数据驱动。
 
 ```text
 brand-config.js
-  统一产品名称、内部消息命名空间、日志前缀和缓存前缀。
+  统一的产品命名、消息命名空间、日志前缀与本地存储键名。
 
 content-main.js
-  运行在页面主环境，观察 Bilibili 播放器和字幕接口响应，也可使用页面会话发起请求。
+  运行在页面主上下文（Page World），监听 B站播放器和字幕请求，支持同源请求。
 
 content.js
-  运行在扩展隔离环境，桥接 popup/background 消息，并短期缓存字幕元数据。
+  运行在扩展隔离上下文（Isolated World），桥接弹窗/后台消息，并缓存字幕线索。
 
 background.js
-  负责 Bilibili API 请求、WBI 签名、字幕 JSON 下载和错误标准化。
+  负责 B站 API 调度、WBI 签名、字幕 JSON 加载与错误标准化。
 
 popup.js
-  负责界面状态、缓存优先策略、TXT/SRT 格式转换、预览和下载。
+  负责 UI 状态、缓存偏好、TXT/SRT 转换、预览、下载以及检查更新逻辑。
+
+update-config.js / update-service.js
+  数据驱动的 GitHub Release 版本检查与更新包下载策略。
 ```
-
-这样页面访问、扩展通信、接口规则和界面逻辑不会写死在单一逻辑里，后续维护和扩展更稳。
-
-## 文件结构
-
-```text
-chrome-extension/
-  manifest.json
-  brand-config.js
-  popup.html
-  popup.css
-  help.html
-  help.css
-  help.js
-  help-assets/
-  design-tokens.css
-  theme-controller.js
-  popup.js
-  background.js
-  content.js
-  content-main.js
-  icons/
-assets/
-UseDemo.mp4
-KenEasy-BiliCC-Exporter-store.zip
-KenEasy-BiliCC-Exporter-manual-install.zip
-scratch/zip_extension.py
-```
-
 
 ## 友情链接
 
 - [LINUX DO](https://linux.do)
 
-## 上架 / 隐私
-
-- 隐私政策：[PRIVACY.md](PRIVACY.md)
-- Chrome Web Store 上架清单：[docs/CHROME_WEB_STORE.md](docs/CHROME_WEB_STORE.md)
-
-## 许可证
+## 开源协议
 
 MIT
