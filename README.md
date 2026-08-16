@@ -17,7 +17,6 @@
 
   <p>
     <a href="https://chromewebstore.google.com/detail/keneasy-bilicc-exporter/nifdbandikjjmgkagghonjjckmpccgng"><img alt="Chrome Web Store" src="https://img.shields.io/badge/Chrome_Web_Store-Available-4285F4?logo=googlechrome&logoColor=white"></a>
-    <img alt="Version" src="https://img.shields.io/badge/version-2.0.1-fb7299">
     <img alt="Manifest" src="https://img.shields.io/badge/manifest-v3-00aeec">
     <img alt="License" src="https://img.shields.io/badge/license-MIT-27c499">
   </p>
@@ -43,15 +42,30 @@ If you cannot access the Chrome Web Store:
 6. Select the extracted `KenEasy-BiliCC-Exporter` folder.
 7. Open a Bilibili video URL (`https://www.bilibili.com/video/BV...`), then click the KenEasy BiliCC Exporter icon.
 
-## 🎬 Video Demos & Core Features
-
-Explore all core workflows through step-by-step real operation screen recordings:
-
-| Feature & Workflow | Walkthrough Video | Highlights |
-| :--- | :--- | :--- |
-| **1. CC Subtitle Extraction & Export** | 📺 **[Watch Demo (MP4)](assets/videos/demo-subtitle-export.mp4)** | Automatically detects all CC subtitle tracks on the active Bilibili video; preview content and export to standard `SRT` or clean `TXT` (UTF-8 BOM). |
-| **2. High-Definition Media Download** | 📺 **[Watch Demo (MP4)](assets/videos/demo-media-download.mp4)** | Select quality (1080P, 720P, etc.) and mode (Video+Audio / Audio-only); merges separated tracks in browser locally into a standard MP4 file. |
-| **3. Persistent Background Download & State Recovery** | 📺 **[Watch Demo (MP4)](assets/videos/demo-persistent-background-download.mp4)** | Managed by the background Service Worker — navigate away or close the popup at any time without losing download progress; reopening seamlessly restores status. |
+## 🎬 Feature Walkthrough & Demos (Auto-looping)
+ 
+Live animated walkthroughs of the 3 core features (auto-playing in a loop, no download required):
+ 
+### 1. CC Subtitle Extraction & Export
+> Automatically detects all CC subtitle tracks on the active Bilibili video; preview content and export to standard `SRT` or clean `TXT` (UTF-8 BOM).
+ 
+<div align="center">
+  <img src="assets/videos/demo-subtitle-export.gif" alt="CC Subtitle Extraction & Export Walkthrough" width="100%">
+</div>
+ 
+### 2. High-Definition Media Download & Local Muxing
+> Select quality (1080P, 720P, etc.) and mode (Video+Audio / Audio-only); merges separated tracks in browser locally into a standard MP4 file.
+ 
+<div align="center">
+  <img src="assets/videos/demo-media-download.gif" alt="High-Definition Media Download Walkthrough" width="100%">
+</div>
+ 
+### 3. Persistent Background Download & State Recovery
+> Managed by the background Service Worker — navigate away or close the popup at any time without losing download progress; reopening seamlessly restores status.
+ 
+<div align="center">
+  <img src="assets/videos/demo-persistent-background-download.gif" alt="Persistent Background Download & State Recovery Walkthrough" width="100%">
+</div>
 
 ## Highlights
 

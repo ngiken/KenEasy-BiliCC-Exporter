@@ -196,7 +196,7 @@ def generate_popup_screenshot():
 
     draw.rectangle((0, 207, 390, 241), fill="#15171d")
     draw.line((0, 207, 390, 207), fill=BORDER)
-    draw.text((16, 219), f"{BRAND_NAME} {VERSION}", font=fit_font(draw, f"{BRAND_NAME} {VERSION}", 240, 11, 8), fill="#a9c8ff")
+    draw.text((16, 219), BRAND_NAME, font=fit_font(draw, BRAND_NAME, 240, 11, 8), fill="#a9c8ff")
     draw.text((298, 219), "TXT / SRT", font=font(10), fill="#d3dcff")
     image.save(ASSETS / "popup-screenshot.png", optimize=True)
 

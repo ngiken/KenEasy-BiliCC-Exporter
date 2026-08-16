@@ -17,7 +17,6 @@
 
   <p>
     <a href="https://chromewebstore.google.com/detail/keneasy-bilicc-exporter/nifdbandikjjmgkagghonjjckmpccgng?hl=zh-CN"><img alt="Chrome Web Store" src="https://img.shields.io/badge/Chrome_%E5%BA%94%E7%94%A8%E5%95%86%E5%BA%97-%E5%AE%98%E6%96%B9%E4%B8%8A%E6%9E%B6-4285F4?logo=googlechrome&logoColor=white"></a>
-    <img alt="Version" src="https://img.shields.io/badge/version-2.0.1-fb7299">
     <img alt="Manifest" src="https://img.shields.io/badge/manifest-v3-00aeec">
     <img alt="License" src="https://img.shields.io/badge/license-MIT-27c499">
   </p>
@@ -43,15 +42,30 @@
 6. 选择解压出来的 `KenEasy-BiliCC-Exporter` 文件夹。
 7. 打开任意 Bilibili 视频页面（如 `https://www.bilibili.com/video/BV...`）即可开始使用。
 
-## 🎬 核心功能实操演示视频
+## 🎬 核心功能实操演示（动态循环）
 
-通过实操录屏直观了解各项核心功能与使用流程：
+无需下载，直接查看 3 大核心功能的动态实操演示（自动循环播放）：
 
-| 核心功能与操作流程 | 演示视频 | 功能亮点说明 |
-| :--- | :--- | :--- |
-| **1. CC 字幕提取与导出全流程** | 📺 **[点击观看实操录屏 (MP4)](assets/videos/demo-subtitle-export.mp4)** | 自动识别当前 B 站视频的所有 CC 字幕轨道，支持实时预览并导出为兼容性良好的 `TXT` 或 `SRT` 文件。 |
-| **2. 高清音视频媒体下载与本地合流** | 📺 **[点击观看实操录屏 (MP4)](assets/videos/demo-media-download.mp4)** | 支持自定义分辨率（1080P、720P 等）与下载模式（音视频合流、纯音频、纯视频），零外部依赖在浏览器端完成 MP4 合并。 |
-| **3. 后台常态化下载与随开随走断点恢复** | 📺 **[点击观看实操录屏 (MP4)](assets/videos/demo-persistent-background-download.mp4)** | 任务全程由后台 Service Worker 托管，下载中途随意关闭或切换弹窗绝不中断，重新打开即刻无缝恢复最新进度。 |
+### 1. CC 字幕提取与导出全流程
+> 自动识别当前 B 站视频的所有 CC 字幕轨道，支持实时预览并导出为兼容性良好的 `TXT` 或 `SRT` 文件。
+
+<div align="center">
+  <img src="assets/videos/demo-subtitle-export.gif" alt="CC 字幕提取与导出全流程演示" width="100%">
+</div>
+
+### 2. 高清音视频媒体下载与本地合流
+> 支持自定义分辨率（1080P、720P 等）与下载模式（音视频合流、纯音频、纯视频），零外部依赖在浏览器端完成 MP4 合并。
+
+<div align="center">
+  <img src="assets/videos/demo-media-download.gif" alt="高清音视频媒体下载与本地合流演示" width="100%">
+</div>
+
+### 3. 后台常态化下载与随开随走断点恢复
+> 任务全程由后台 Service Worker 托管，下载中途随意关闭或切换弹窗绝不中断，重新打开即刻无缝恢复最新进度。
+
+<div align="center">
+  <img src="assets/videos/demo-persistent-background-download.gif" alt="后台常态化下载与随开随走断点恢复演示" width="100%">
+</div>
 
 ## 核心能力
 
