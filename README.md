@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="assets/github-preview.png" alt="KenEasy BiliCC Exporter" width="100%">
+  <img src="assets/hero-banner.png" alt="KenEasy BiliCC Exporter" width="100%">
 
   <h1>KenEasy BiliCC Exporter</h1>
 
