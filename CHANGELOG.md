@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.0.2 - 2026-08-23
+
+Chrome Web Store compliance & permissions security refinement.
+
+- **Minimal Permission Security Refinement**: Cleaned up legacy wildcard host permissions (`https://*/*`, `http://*/*`) from `manifest.json`, strictly restricting declarativeNetRequest and host access to verified Bilibili API endpoints, CDN hosts, and GitHub release endpoints.
+- **Store Policy Alignment**: Refined store listing metadata and permission justification documentation according to latest Chrome Web Store Developer Program policies.
+- **Automated Store Package Syncing**: Enhanced packaging pipeline to keep local zip artifacts synchronized with store submission assets.
+
 ## 2.0.1 - 2026-08-15
 
 Smart update channel decoupling & refreshed demonstration showcase.

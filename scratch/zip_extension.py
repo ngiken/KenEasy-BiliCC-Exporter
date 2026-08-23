@@ -75,11 +75,20 @@ def zip_extension(src_dir, dest_zip, root_folder=None):
 
 
 if __name__ == "__main__":
+    import shutil
+
     project_root = Path(__file__).resolve().parents[1]
     extension_dir = project_root / "chrome-extension"
-    zip_extension(extension_dir, project_root / "KenEasy-BiliCC-Exporter-store.zip")
+    store_zip = project_root / "KenEasy-BiliCC-Exporter-store.zip"
+    upload_store_zip = project_root / "UPLOAD-TO-CHROME-WEB-STORE" / "KenEasy-BiliCC-Exporter-store.zip"
+
+    zip_extension(extension_dir, store_zip)
     zip_extension(
         extension_dir,
         project_root / "KenEasy-BiliCC-Exporter-manual-install.zip",
         root_folder="KenEasy-BiliCC-Exporter",
     )
+    if upload_store_zip.parent.exists():
+        shutil.copy2(store_zip, upload_store_zip)
+        print(f"Synced store package to: {upload_store_zip}")
+

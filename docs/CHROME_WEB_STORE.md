@@ -90,27 +90,27 @@ Icon already included: chrome-extension/icons/icon128.png
 
 ## 6. Permission justifications
 
-activeTab: Only used when the user opens the popup on the current Bilibili tab to read the active video context.
+activeTab: Required to access the URL, title, and DOM of the currently active Bilibili video tab when the user clicks the extension popup, enabling the extraction of subtitle and video data.
 
-storage: Stores local UI preferences and update-check cache on device. No account sync server.
+storage: Required to store local user preferences such as preferred export format (SRT/TXT), preferred video quality, and UI theme mode (light/dark). No personal user data is collected.
 
-downloads: Saves exported subtitle files, downloaded media files, and optional update packages requested by the user.
+downloads: Required to save the exported subtitle files (.srt/.txt) and processed video/audio media files directly to the user's local default downloads folder.
 
-declarativeNetRequestWithHostAccess: Adds the required Referer header for Bilibili media CDN requests so video/audio downloads can complete successfully.
+declarativeNetRequestWithHostAccess: Required to safely append or modify request headers (such as Referer and User-Agent) when requesting subtitle/media chunks from Bilibili API endpoints, preventing playback/download request rejection.
 
-offscreen: In Manifest V3, Service Workers lack access to DOM APIs like URL.createObjectURL. The offscreen document API (with BLOBS reason) is used to create object URLs and trigger chrome.downloads for large media video/audio files safely without holding large binary blobs in the service worker.
+offscreen: Required to perform background audio/video stream muxing and parsing tasks in an isolated offscreen document without freezing or degrading the performance of the main background service worker.
 
-Host permissions bilibili/bilivideo/hdslb/biliapi: Needed to read the current video page, subtitle endpoints, and media stream hosts used by Bilibili playback.
+Host permissions (bilibili / bilivideo / hdslb / biliapi): Required to communicate with Bilibili subtitle APIs and fetch media streams from official Bilibili content delivery networks to parse captions and download the selected video.
 
-Host permissions github.com/api.github.com/githubusercontent: Used only for optional version checks and download links for dual-distribution / manual-install users. Store-installed users primarily rely on Chrome Web Store auto-update.
+Host permissions (github): Used only for optional version checks and release asset links for manual-install users.
 
 ## 7. Single purpose
-Help users export Bilibili closed captions and download the current Bilibili video locally.
+This extension provides a dedicated tool for Bilibili users to export CC subtitles and download the corresponding video/audio from the currently active video page for offline study, translation, and local backup.
 
-## 8. Distribution
+## 8. Distribution & Compliance (Red Nickel Policy)
 - Visibility: Public
-- Price: Free
 - Regions: all or your target markets
+- Compliance Note: Do not include promotional or status words (such as "Free", "#1", "Premium", "Best", "Recommended") in store titles, short summaries, or promotional tiles/screenshots.
 
 ## 9. After approval
 1. You get a Chrome Web Store URL
