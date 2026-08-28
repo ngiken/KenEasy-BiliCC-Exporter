@@ -6,11 +6,8 @@ Chrome MV3 extension that exports Bilibili CC subtitles as TXT/SRT.
 
 ```text
 chrome-extension/     # Load this folder in Chrome (unpacked)
-assets/               # README / store screenshots & demo gif
-scratch/              # Maintainer scripts only
-  zip_extension.py              # tracked — builds store + manual zips
-  generate_brand_assets.py      # tracked — brand assets helper
-  *                             # other scripts stay local (gitignored)
+assets/               # README screenshots & demo gifs
+scratch/              # Local maintainer scripts & scratch (gitignored)
 ```
 
 ## Hard rules (do not break)
@@ -24,8 +21,9 @@ scratch/              # Maintainer scripts only
    - `scratch/zip_extension.py` also skips pem/key/secret-looking names
 3. **Do not `git init` in the parent workspace**
    - Parent `开源软件1` is a multi-project workspace; this folder is the git root
-4. **Do not commit raw personal recordings**
-   - `Screen Recording*.mp4` is ignored; polished `UseDemo.mp4` / `assets/*` are intentional
+4. **Do not commit binaries / release packages / store folders**
+   - `*.zip`, `UPLOAD-TO-CHROME-WEB-STORE/`, `scratch/`, `*.mp4` are ignored
+   - Releases belong on GitHub Releases / Chrome Web Store, not in Git commits
 5. **Keep the extension dependency-free**
    - No npm/build step for the shipped extension unless product direction changes
 
@@ -34,10 +32,9 @@ scratch/              # Maintainer scripts only
 Before `git add` / commit / push:
 
 ```text
-[ ] git status — no .pem / .env / unexpected binaries
-[ ] Only intentional media: assets/* , UseDemo.mp4
-[ ] Release zips regenerated only when shipping: python scratch/zip_extension.py
-[ ] No absolute machine paths introduced in tracked scripts
+[ ] git status — no .pem / .env / .zip / store folders / unexpected binaries
+[ ] Only intentional source files and docs
+[ ] No absolute machine paths introduced in scripts
 [ ] Version bump consistent if releasing: manifest.json + README badges + CHANGELOG
 ```
 
@@ -45,7 +42,7 @@ Quick secret scan (PowerShell, run from project root):
 
 ```powershell
 git status --short
-git ls-files | Select-String -Pattern '\.(pem|p12|key|pfx)$|\.env|secret|credential'
+git ls-files | Select-String -Pattern '\.(pem|p12|key|pfx|zip|mp4)$|\.env|secret|credential|UPLOAD'
 Get-ChildItem -Recurse -File chrome-extension | Where-Object {
   $_.Extension -match '\.(pem|p12|key|pfx)$' -or $_.Name -match 'secret|credential|\.env'
 }
@@ -66,9 +63,8 @@ Get-ChildItem -Recurse -File chrome-extension | Where-Object {
 | --- | --- |
 | Extension source under `chrome-extension/` | Private keys / `.pem` |
 | Docs, LICENSE, CHANGELOG | `.env` / tokens / cookies |
-| Intentional demo media (`assets/`, `UseDemo.mp4`) | Raw screen recordings |
-| Tracked packaging scripts | Ad-hoc local scratch experiments |
-| Release zips when intentionally shipping | Random large dumps / personal notes |
+| README assets (`assets/*.png`, `assets/videos/*.gif`) | Raw screen recordings / MP4s |
+| Source code & documentation | Binary `.zip` releases, store packages, `scratch/` |
 
 ## Architecture touchpoints
 

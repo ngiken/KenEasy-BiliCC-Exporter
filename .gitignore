@@ -20,15 +20,24 @@ ehthumbs.db
 .vscode/
 *.code-workspace
 
-# Local media / recordings (keep polished assets/ and UseDemo.mp4 tracked intentionally)
+# Build artifacts & package archives (distributables belong in GitHub Releases)
+*.zip
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+UPLOAD-TO-CHROME-WEB-STORE/
+dist/
+build/
+
+# Local media / screen recordings
+UseDemo.mp4
 Screen Recording*.mp4
 *.local.mp4
 *.raw.mp4
 
-# Local-only scratch helpers (packaging scripts are force-tracked below)
-scratch/*
-!scratch/zip_extension.py
-!scratch/generate_brand_assets.py
+# Local scratch / test harness / temporary helpers
+scratch/
 
 # Python
 __pycache__/
