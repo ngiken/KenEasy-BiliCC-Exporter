@@ -459,11 +459,13 @@ function toSrt(entries) {
 }
 
 function toSrtTime(value) {
-  const sec = Number(value) || 0;
-  const hours = Math.floor(sec / 3600);
-  const minutes = Math.floor((sec % 3600) / 60);
-  const seconds = Math.floor(sec % 60);
-  const ms = Math.round((sec - Math.floor(sec)) * 1000);
+  const totalMs = Math.max(0, Math.round((Number(value) || 0) * 1000));
+  const ms = totalMs % 1000;
+  const totalSec = Math.floor(totalMs / 1000);
+  const seconds = totalSec % 60;
+  const totalMin = Math.floor(totalSec / 60);
+  const minutes = totalMin % 60;
+  const hours = Math.floor(totalMin / 60);
   return `${pad(hours, 2)}:${pad(minutes, 2)}:${pad(seconds, 2)},${pad(ms, 3)}`;
 }
 
@@ -1029,7 +1031,7 @@ function getExtensionVersion() {
   if (typeof chrome !== 'undefined' && chrome.runtime?.getManifest) {
     return chrome.runtime.getManifest().version;
   }
-  return '2.0.1';
+  return '2.0.3';
 }
 
 function t(key, substitutions = []) {

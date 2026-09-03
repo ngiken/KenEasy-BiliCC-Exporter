@@ -274,8 +274,14 @@
       const tx = db.transaction(STORE_NAME, 'readwrite');
       const store = tx.objectStore(STORE_NAME);
       store.put({ id, buffer });
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error || new Error('IndexedDB put failed'));
+      tx.oncomplete = () => {
+        try { db.close(); } catch (_) {}
+        resolve();
+      };
+      tx.onerror = () => {
+        try { db.close(); } catch (_) {}
+        reject(tx.error || new Error('IndexedDB put failed'));
+      };
     });
   }
 

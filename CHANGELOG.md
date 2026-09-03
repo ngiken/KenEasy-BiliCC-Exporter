@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.0.3 - 2026-09-03
+
+Minor optimization & robustness release.
+
+- **SRT Timestamp Milliseconds Rollover Fix**: Resolved an edge-case timestamp calculation bug in `toSrtTime()` where sub-second fractional values rounding up to 1000ms generated `,1000` instead of properly advancing the seconds field.
+- **IndexedDB Connection Lifecycle & Resource Cleanliness**: Ensured `db.close()` is consistently invoked across IndexedDB read/write transactions in `media-download-service.js` and `offscreen.js`, eliminating memory handle leaks and potential database lock contention.
+- **Cross-Origin Window Message Boundary**: Hardened message listeners in `content.js` and `content-main.js` with explicit `event.source === window` origin verification to prevent foreign embedded frames from spoofing communication channels.
+- **Version Alignment**: Synced runtime version fallback and manifest definitions to 2.0.3.
+
 ## 2.0.2 - 2026-08-23
 
 Chrome Web Store compliance & permissions security refinement.

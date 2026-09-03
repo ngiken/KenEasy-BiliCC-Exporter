@@ -6,7 +6,7 @@
   const pendingRequests = new Map();
 
   window.addEventListener('message', (event) => {
-    if (!event.data) return;
+    if (event.source !== window || !event.data) return;
 
     if (
       event.data.type === MESSAGE_TYPES.fetchResponse ||

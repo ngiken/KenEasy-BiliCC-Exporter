@@ -30,9 +30,13 @@
       req.onsuccess = () => {
         const data = req.result ? req.result.buffer : null;
         store.delete(id);
+        try { db.close(); } catch (_) {}
         resolve(data);
       };
-      req.onerror = () => reject(req.error || new Error('IndexedDB get failed'));
+      req.onerror = () => {
+        try { db.close(); } catch (_) {}
+        reject(req.error || new Error('IndexedDB get failed'));
+      };
     });
   }
 
