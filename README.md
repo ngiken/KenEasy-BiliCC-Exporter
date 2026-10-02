@@ -4,7 +4,7 @@
   <h1>KenEasy BiliCC Exporter</h1>
 
   <p>
-    Export Bilibili CC subtitles from the current video page as <code>TXT</code> or <code>SRT</code>, and download high-definition video & audio with background persistent state recovery.
+    Export Bilibili CC subtitles from the current video page as <code>TXT</code>, <code>SRT</code>, <code>VTT</code>, or <code>JSON</code>, copy subtitle text with one click, and download high-definition video & audio with background persistent state recovery.
   </p>
 
   <p>

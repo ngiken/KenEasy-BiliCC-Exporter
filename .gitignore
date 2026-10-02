@@ -35,6 +35,7 @@ UseDemo.mp4
 Screen Recording*.mp4
 *.local.mp4
 *.raw.mp4
+*.mp4
 
 # Local scratch / test harness / temporary helpers
 scratch/
@@ -56,3 +57,4 @@ venv/
 # Optional local notes
 TODO.local.md
 NOTES.local.md
+STATUS_LOG.md

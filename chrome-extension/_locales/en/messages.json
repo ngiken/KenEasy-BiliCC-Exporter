@@ -295,5 +295,20 @@
   },
   "updateCheckNow": {
     "message": "Check for updates"
+  },
+  "copyText": {
+    "message": "Copy"
+  },
+  "copyTextTitle": {
+    "message": "Copy plain text subtitles to clipboard"
+  },
+  "copiedText": {
+    "message": "Copied✓"
+  },
+  "copiedSuccessToast": {
+    "message": "Subtitles copied to clipboard"
+  },
+  "copyFailedToast": {
+    "message": "Failed to copy subtitles to clipboard"
   }
 }

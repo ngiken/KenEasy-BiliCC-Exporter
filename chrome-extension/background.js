@@ -161,15 +161,32 @@ function md5(inputString) {
   return rh(a) + rh(b) + rh(c) + rh(d);
 }
 
-async function signWbi(params) {
-  const navData = await jsonFetch(`${API_BASE}/x/web-interface/nav`, requestProfiles.page);
-  if (navData.code !== 0) {
-    throw new Error(`Failed to load WBI keys: ${navData.message || navData.code}`);
+let cachedWbiKeys = null;
+let cachedWbiTime = 0;
+const WBI_CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour TTL
+
+async function getWbiKeys() {
+  const now = Date.now();
+  if (cachedWbiKeys && now - cachedWbiTime < WBI_CACHE_TTL_MS) {
+    return cachedWbiKeys;
   }
 
-  const { img_url: imgUrl, sub_url: subUrl } = navData.data.wbi_img;
-  const imgKey = imgUrl.split('/').pop().split('.')[0];
-  const subKey = subUrl.split('/').pop().split('.')[0];
+  const navData = await jsonFetch(`${API_BASE}/x/web-interface/nav`, requestProfiles.page);
+  // B站未登录时返回 code: -101 ("账号未登录")，但 data.wbi_img 依然完整包含 img_url 与 sub_url
+  const wbiImg = navData?.data?.wbi_img;
+  if (!wbiImg?.img_url || !wbiImg?.sub_url) {
+    throw new Error(`Failed to load WBI keys: ${navData?.message || navData?.code || 'no wbi_img'}`);
+  }
+
+  const imgKey = wbiImg.img_url.split('/').pop().split('.')[0];
+  const subKey = wbiImg.sub_url.split('/').pop().split('.')[0];
+  cachedWbiKeys = { imgKey, subKey };
+  cachedWbiTime = now;
+  return cachedWbiKeys;
+}
+
+async function signWbi(params) {
+  const { imgKey, subKey } = await getWbiKeys();
   const allParams = { ...params, wts: Math.floor(Date.now() / 1000) };
   const sorted = Object.keys(allParams).sort().reduce((result, key) => {
     result[key] = String(allParams[key]).replace(/[!'()*]/g, '');
@@ -179,13 +196,29 @@ async function signWbi(params) {
   return { ...sorted, w_rid: md5(query + getMixinKey(imgKey, subKey)) };
 }
 
-async function getVideoInfo(bvid) {
+async function getVideoInfo(bvid, tabId) {
   const url = `${API_BASE}/x/web-interface/view?bvid=${encodeURIComponent(bvid)}`;
-  const data = await jsonFetch(url, requestProfiles.page);
-  if (data.code !== 0) {
-    throw new Error(`Failed to load video detail: ${data.message || data.code}`);
+  // 优先通过页面上下文拉取（带用户 Cookie 与正常 Referer），避免 Service Worker 裸请求触发 412 WAF 挑战
+  if (tabId) {
+    const pageData = await fetchViaPage(tabId, url);
+    if (pageData && pageData.code === 0 && pageData.data) {
+      return pageData.data;
+    }
   }
-  return data.data;
+
+  try {
+    const data = await jsonFetch(url, requestProfiles.page);
+    if (data && data.code === 0 && data.data) {
+      return data.data;
+    }
+    if (data && data.message) {
+      throw new Error(data.message);
+    }
+  } catch (error) {
+    console.warn(`${BRAND_CONFIG.logPrefix} SW fetch video detail failed:`, error);
+  }
+
+  throw new Error(`Failed to load video detail for ${bvid}`);
 }
 
 async function fetchViaPage(tabId, url) {
@@ -233,7 +266,7 @@ async function handleFetchSubtitles({ bvid, aid, cid, tabId }) {
   let currentCid = cid;
 
   if (!currentAid || !currentCid) {
-    const info = await getVideoInfo(bvid);
+    const info = await getVideoInfo(bvid, tabId);
     currentAid = info.aid;
     currentCid = info.cid;
   }
@@ -317,7 +350,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 
   if (request.type === MESSAGES.fetchVideoDetail) {
-    getVideoInfo(request.bvid)
+    getVideoInfo(request.bvid, request.tabId)
       .then((data) => sendResponse({ success: true, data }))
       .catch((error) => sendResponse({ success: false, error: error.message || String(error) }));
     return true;

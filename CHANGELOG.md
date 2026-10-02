@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.0.4 - 2026-10-02
+
+Subtitle format expansion, anonymous WBI resilience & Git hygiene release.
+
+- **Anonymous & Unauthenticated WBI Signing Resilience**: Resolved an issue where Bilibili's `/x/web-interface/nav` returns `code: -101` for anonymous visitors. The extension now safely extracts WBI keys directly from `navData.data.wbi_img` regardless of login state, restoring signed subtitle requests for all users.
+- **WBI Key In-Memory Caching**: Implemented a 1-hour in-memory cache for WBI key pairs in the background service worker, eliminating redundant network roundtrips on every download or extraction request.
+- **WAF 412 Defense on Video Detail**: Hardened `getVideoInfo` by prioritizing page-context retrieval with active session cookies and natural referrers, protecting against Bilibili anti-crawler HTTP 412 challenge blocks in background contexts.
+- **Expanded Subtitle Formats (VTT & JSON)**: Added WebVTT (`.vtt`) format support for HTML5 video players and structured JSON (`.json`) export for LLM summarization and transcript processing pipelines.
+- **One-Click Subtitle Text Copy**: Added an instant "Copy" button to track lists with micro-feedback (`已复制✓`), allowing users to immediately copy subtitle text to clipboard without saving a file.
+- **Git Hygiene**: Untracked large video recordings (`assets/videos/*.mp4`) from Git and reinforced `.gitignore` rules in compliance with workspace standards.
+
 ## 2.0.3 - 2026-09-03
 
 Minor optimization & robustness release.

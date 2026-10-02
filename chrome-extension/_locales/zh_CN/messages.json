@@ -295,5 +295,20 @@
   },
   "updateCheckNow": {
     "message": "检查更新"
+  },
+  "copyText": {
+    "message": "复制"
+  },
+  "copyTextTitle": {
+    "message": "复制纯文本字幕到剪贴板"
+  },
+  "copiedText": {
+    "message": "已复制✓"
+  },
+  "copiedSuccessToast": {
+    "message": "已成功复制字幕全文到剪贴板"
+  },
+  "copyFailedToast": {
+    "message": "复制到剪贴板失败"
   }
 }

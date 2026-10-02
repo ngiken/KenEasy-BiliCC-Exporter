@@ -43,7 +43,12 @@ const FALLBACK_TEXT = Object.freeze({
   downloaded: 'Saved',
   previewLabel: 'Subtitle preview',
   backButton: 'Back',
-  footerFormats: 'TXT / SRT',
+  footerFormats: 'TXT / SRT / VTT / JSON',
+  copyText: 'Copy',
+  copyTextTitle: 'Copy plain text subtitles to clipboard',
+  copiedText: 'Copied✓',
+  copiedSuccessToast: 'Subtitles copied to clipboard',
+  copyFailedToast: 'Failed to copy subtitles to clipboard',
   footerGithub: 'GitHub',
   footerStar: 'Star ★',
   currentPageNotVideo: 'The current page is not a Bilibili video page.',
@@ -403,6 +408,9 @@ function renderTracks(tracks) {
     buttons.append(
       createDownloadButton(track, index, 'txt'),
       createDownloadButton(track, index, 'srt'),
+      createDownloadButton(track, index, 'vtt'),
+      createDownloadButton(track, index, 'json'),
+      createCopyButton(track, index),
     );
 
     item.append(meta, buttons);
@@ -423,10 +431,58 @@ function createDownloadButton(track, index, format) {
   return button;
 }
 
+function createCopyButton(track, index) {
+  const button = document.createElement('button');
+  button.className = 'dl-btn copy';
+  button.id = `dl-copy-${index}`;
+  button.type = 'button';
+  button.textContent = t('copyText');
+  button.title = t('copyTextTitle');
+  button.addEventListener('click', async () => {
+    const text = toPlainText(track.entries);
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        document.execCommand('copy');
+        textarea.remove();
+      }
+      const prev = button.textContent;
+      button.textContent = t('copiedText');
+      button.classList.add('downloaded');
+      showStatusToast(t('copiedSuccessToast'), 'success');
+      setTimeout(() => {
+        button.textContent = prev;
+        button.classList.remove('downloaded');
+      }, 1500);
+    } catch (e) {
+      showStatusToast(t('copyFailedToast'), 'error');
+    }
+  });
+  return button;
+}
+
+function formatSubtitleContent(entries, format, track, video) {
+  if (format === 'txt') return toPlainText(entries);
+  if (format === 'srt') return toSrt(entries);
+  if (format === 'vtt') return toVtt(entries);
+  if (format === 'json') return toJson(entries, track, video);
+  return toPlainText(entries);
+}
+
 function triggerDownload(track, format, video) {
-  const content = format === 'txt' ? toPlainText(track.entries) : toSrt(track.entries);
+  const content = formatSubtitleContent(track.entries, format, track, video);
   const filename = buildSubtitleFilename(video, track, format);
-  const blob = new Blob([`\uFEFF${content}`], { type: 'text/plain;charset=utf-8' });
+  const mime = format === 'json' ? 'application/json;charset=utf-8' : 'text/plain;charset=utf-8';
+  const prefix = format === 'json' ? '' : '\uFEFF';
+  const blob = new Blob([`${prefix}${content}`], { type: mime });
   const reader = new FileReader();
 
   reader.onloadend = () => {
@@ -467,6 +523,44 @@ function toSrtTime(value) {
   const minutes = totalMin % 60;
   const hours = Math.floor(totalMin / 60);
   return `${pad(hours, 2)}:${pad(minutes, 2)}:${pad(seconds, 2)},${pad(ms, 3)}`;
+}
+
+function toVtt(entries) {
+  const lines = ['WEBVTT\n'];
+  entries.forEach((entry, index) => {
+    lines.push(`${index + 1}`);
+    lines.push(`${toVttTime(entry.from || 0)} --> ${toVttTime(entry.to || 0)}`);
+    lines.push(`${entry.content || ''}\n`);
+  });
+  return lines.join('\n');
+}
+
+function toVttTime(value) {
+  const totalMs = Math.max(0, Math.round((Number(value) || 0) * 1000));
+  const ms = totalMs % 1000;
+  const totalSec = Math.floor(totalMs / 1000);
+  const seconds = totalSec % 60;
+  const totalMin = Math.floor(totalSec / 60);
+  const minutes = totalMin % 60;
+  const hours = Math.floor(totalMin / 60);
+  return `${pad(hours, 2)}:${pad(minutes, 2)}:${pad(seconds, 2)}.${pad(ms, 3)}`;
+}
+
+function toJson(entries, track, video) {
+  const payload = {
+    title: video?.title || '',
+    bvid: video?.bvid || '',
+    language: getTrackLanguageLabel(track),
+    exportedAt: new Date().toISOString(),
+    totalEntries: entries.length,
+    subtitles: entries.map((entry, index) => ({
+      index: index + 1,
+      from: Number(entry.from || 0),
+      to: Number(entry.to || 0),
+      content: entry.content || '',
+    })),
+  };
+  return JSON.stringify(payload, null, 2);
 }
 
 function downloadWithAnchor(url, filename) {
@@ -1031,7 +1125,7 @@ function getExtensionVersion() {
   if (typeof chrome !== 'undefined' && chrome.runtime?.getManifest) {
     return chrome.runtime.getManifest().version;
   }
-  return '2.0.3';
+  return '2.0.4';
 }
 
 function t(key, substitutions = []) {

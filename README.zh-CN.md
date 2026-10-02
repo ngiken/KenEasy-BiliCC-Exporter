@@ -4,7 +4,7 @@
   <h1>KenEasy BiliCC Exporter</h1>
 
   <p>
-    从 Bilibili / B站当前视频页读取 CC 字幕并导出为 <code>TXT</code> / <code>SRT</code>，支持高清音视频下载与后台常态化断点状态恢复。
+    从 Bilibili / B站当前视频页读取 CC 字幕并导出为 <code>TXT</code> / <code>SRT</code> / <code>VTT</code> / <code>JSON</code>，支持一键复制字幕全文，支持高清音视频下载与后台常态化断点状态恢复。
   </p>
 
   <p>
