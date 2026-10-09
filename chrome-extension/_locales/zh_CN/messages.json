@@ -365,5 +365,23 @@
         "content": "$1"
       }
     }
+  },
+  "starPromptKicker": {
+    "message": "里程碑达成"
+  },
+  "starPromptTitle": {
+    "message": "你已经使用 10 次啦！"
+  },
+  "starPromptBody": {
+    "message": "很高兴 KenEasy 能为你提供便利。如果喜欢这个小工具，能否去 GitHub 为我们点亮一颗 Star 呢？这是对开发者持续更新的最大鼓励！"
+  },
+  "starPromptActionLabel": {
+    "message": "去 GitHub 点个 Star ★"
+  },
+  "starPromptLaterLabel": {
+    "message": "稍后再说"
+  },
+  "starPromptThankToast": {
+    "message": "非常感谢你的支持与鼓励！❤️"
   }
 }

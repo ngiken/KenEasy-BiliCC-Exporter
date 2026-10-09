@@ -236,7 +236,7 @@
 
     <footer class="footer">
       <div class="footer-left">
-        <span id="footerVersion">KenEasy BiliCC Exporter v2.1.0</span>
+        <span id="footerVersion">KenEasy BiliCC Exporter v3.0.0</span>
         <button type="button" class="footer-update-btn" id="footerUpdateBtn">Update</button>
       </div>
       <div class="footer-right">
@@ -247,6 +247,29 @@
         <a class="footer-link footer-star" id="footerStar" href="https://github.com/ngiken/KenEasy-BiliCC-Exporter" target="_blank" rel="noopener noreferrer">Star ★</a>
       </div>
     </footer>
+
+    <!-- 10-Usage Star Prompt Modal -->
+    <div class="modal-backdrop" id="starPromptModal" hidden aria-hidden="true" role="dialog" aria-labelledby="starPromptTitle">
+      <div class="star-prompt-card">
+        <div class="star-prompt-header">
+          <span class="star-prompt-badge">⭐ <span id="starPromptKicker">MILESTONE</span></span>
+          <button type="button" class="star-prompt-close" id="starPromptCloseBtn" aria-label="Close">✕</button>
+        </div>
+        <div class="star-prompt-body">
+          <h3 class="star-prompt-title" id="starPromptTitle">你已经使用 10 次啦！</h3>
+          <p class="star-prompt-desc" id="starPromptBody">很高兴 KenEasy 能为你提供便利。如果喜欢这个小工具，能否去 GitHub 为我们点亮一颗 Star 呢？这是对开发者最大的鼓励！</p>
+        </div>
+        <div class="star-prompt-actions">
+          <button type="button" class="button btn-primary btn-star" id="starPromptActionBtn">
+            <span class="button-icon">★</span>
+            <span id="starPromptActionLabel">去 GitHub 点个 Star</span>
+          </button>
+          <button type="button" class="button btn-secondary btn-later" id="starPromptLaterBtn">
+            <span id="starPromptLaterLabel">稍后再说</span>
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script src="popup.js"></script>

@@ -1432,3 +1432,141 @@ select.field-control option {
 :root[data-theme="dark"] .status-toast.is-info {
   color: #64b5ff;
 }
+
+/* ---------- 10-Usage Star Milestone Modal ---------- */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+  animation: modal-fade-in 200ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.modal-backdrop[hidden] {
+  display: none !important;
+}
+
+@keyframes modal-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modal-pop-up {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.star-prompt-card {
+  width: 100%;
+  max-width: 320px;
+  background: var(--bg-card);
+  border: 1px solid color-mix(in srgb, #f59e0b 35%, var(--line));
+  border-radius: 20px;
+  padding: 18px 20px 16px;
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.35), 0 0 24px -4px rgba(245, 158, 11, 0.2);
+  text-align: left;
+  animation: modal-pop-up 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.star-prompt-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.star-prompt-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: color-mix(in srgb, #f59e0b 16%, var(--surface-muted));
+  color: #d97706;
+  border: 1px solid color-mix(in srgb, #f59e0b 30%, transparent);
+}
+
+:root[data-theme="dark"] .star-prompt-badge {
+  color: #fbbf24;
+  background: color-mix(in srgb, #f59e0b 22%, transparent);
+}
+
+.star-prompt-close {
+  background: transparent;
+  border: 0;
+  font-size: 15px;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  line-height: 1;
+  transition: color 150ms ease, background 150ms ease;
+}
+
+.star-prompt-close:hover {
+  color: var(--text);
+  background: var(--surface-muted);
+}
+
+.star-prompt-title {
+  font-size: 14.5px;
+  font-weight: 750;
+  color: var(--text);
+  margin: 0 0 8px;
+  line-height: 1.35;
+}
+
+.star-prompt-desc {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  margin: 0 0 16px;
+}
+
+.star-prompt-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.btn-star {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+  color: #ffffff !important;
+  border: 0 !important;
+  font-weight: 700 !important;
+  box-shadow: 0 4px 12px -2px rgba(217, 119, 6, 0.45);
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.btn-star:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px -2px rgba(217, 119, 6, 0.6);
+}
+
+.btn-later {
+  font-size: 11.5px !important;
+  padding: 7px 12px !important;
+  color: var(--text-tertiary) !important;
+  background: transparent !important;
+  border: 0 !important;
+}
+
+.btn-later:hover {
+  color: var(--text) !important;
+  background: var(--surface-muted) !important;
+}

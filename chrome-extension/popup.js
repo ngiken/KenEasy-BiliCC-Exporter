@@ -8,6 +8,69 @@ const appState = {
 
 const BRAND_CONFIG = globalThis.KENEASY_BILICC_CONFIG;
 const STORAGE_PREFIX = BRAND_CONFIG.storage.subtitleHintPrefix;
+const USAGE_STORAGE_KEYS = Object.freeze({
+  count: `${STORAGE_PREFIX}usage_success_count`,
+  starStatus: `${STORAGE_PREFIX}star_prompt_status`,
+});
+const USAGE_MILESTONE = 10;
+
+async function getStorageItem(key) {
+  try {
+    if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+      const res = await chrome.storage.local.get(key);
+      return res[key];
+    }
+  } catch (_) {}
+  try {
+    return localStorage.getItem(key);
+  } catch (_) {
+    return null;
+  }
+}
+
+async function setStorageItem(key, value) {
+  try {
+    if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+      await chrome.storage.local.set({ [key]: value });
+    }
+  } catch (_) {}
+  try {
+    localStorage.setItem(key, String(value));
+  } catch (_) {}
+}
+
+async function recordSuccessfulUsage() {
+  try {
+    const raw = await getStorageItem(USAGE_STORAGE_KEYS.count);
+    const count = (parseInt(raw, 10) || 0) + 1;
+    await setStorageItem(USAGE_STORAGE_KEYS.count, count);
+
+    const status = await getStorageItem(USAGE_STORAGE_KEYS.starStatus);
+    if (count >= USAGE_MILESTONE && status !== 'starred' && status !== 'dismissed') {
+      setTimeout(() => {
+        showStarPromptModal();
+      }, 700);
+    }
+  } catch (err) {
+    console.warn('[KenEasy] Usage tracking error:', err);
+  }
+}
+
+function showStarPromptModal() {
+  const modal = document.getElementById('starPromptModal');
+  if (modal) {
+    modal.hidden = false;
+    modal.setAttribute('aria-hidden', 'false');
+  }
+}
+
+function hideStarPromptModal() {
+  const modal = document.getElementById('starPromptModal');
+  if (modal) {
+    modal.hidden = true;
+    modal.setAttribute('aria-hidden', 'true');
+  }
+}
 
 const FALLBACK_TEXT = Object.freeze({
   extensionName: BRAND_CONFIG.appName,
@@ -87,6 +150,12 @@ const FALLBACK_TEXT = Object.freeze({
   metricEtaLabel: 'ETA',
   metricDoneSpeed: 'Done',
   notificationDownloadDone: 'Download complete: {filename}',
+  starPromptKicker: 'MILESTONE REACHED',
+  starPromptTitle: "You've used KenEasy 10 times!",
+  starPromptBody: "We're so glad KenEasy has been helpful to you! If you enjoy this tool, could you spare a moment to give us a Star on GitHub? It means the world to us!",
+  starPromptActionLabel: 'Star on GitHub ★',
+  starPromptLaterLabel: 'Maybe later',
+  starPromptThankToast: 'Thank you so much for your support! ❤️',
   mediaOptionsFailed: 'Unable to load media download options for this video.',
   mediaDownloadFailed: 'Media download failed.',
   qualityAuto: 'Auto',
@@ -210,6 +279,28 @@ document.addEventListener('DOMContentLoaded', async () => {
       appState.mediaJobId = null;
       showState('ready');
     });
+  });
+
+  document.getElementById('starPromptCloseBtn')?.addEventListener('click', async () => {
+    hideStarPromptModal();
+    await setStorageItem(USAGE_STORAGE_KEYS.starStatus, 'dismissed');
+  });
+
+  document.getElementById('starPromptLaterBtn')?.addEventListener('click', async () => {
+    hideStarPromptModal();
+    await setStorageItem(USAGE_STORAGE_KEYS.starStatus, 'later');
+  });
+
+  document.getElementById('starPromptActionBtn')?.addEventListener('click', async () => {
+    hideStarPromptModal();
+    await setStorageItem(USAGE_STORAGE_KEYS.starStatus, 'starred');
+    showStatusToast(t('starPromptThankToast'), 'success');
+    const githubUrl = BRAND_CONFIG.links?.github || 'https://github.com/ngiken/KenEasy-BiliCC-Exporter';
+    if (typeof chrome !== 'undefined' && chrome.tabs?.create) {
+      chrome.tabs.create({ url: githubUrl });
+    } else {
+      window.open(githubUrl, '_blank');
+    }
   });
 
   if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {
@@ -458,6 +549,7 @@ function renderResults(tracks) {
   setText('bvidTag2', appState.video.bvid || 'BV...');
   renderTracks(tracks);
   showPreview(tracks[0]);
+  recordSuccessfulUsage();
 }
 
 function renderTracks(tracks) {
@@ -1033,6 +1125,7 @@ function setMediaDoneState(filename, totalBytes = 0) {
   const activeIndicator = document.getElementById('activeJobIndicator');
   if (activeIndicator) activeIndicator.hidden = true;
   appState.runningJob = null;
+  recordSuccessfulUsage();
 }
 
 function handleMediaProgress(message) {
@@ -1328,6 +1421,11 @@ function applyStaticText() {
   setText('mediaBgAssuranceText', t('mediaBgAssurance'));
   setText('mediaCancelBtnLabel', t('cancelButton'));
   setText('activeJobViewBtn', t('activeJobViewBtn'));
+  setText('starPromptKicker', t('starPromptKicker'));
+  setText('starPromptTitle', t('starPromptTitle'));
+  setText('starPromptBody', t('starPromptBody'));
+  setText('starPromptActionLabel', t('starPromptActionLabel'));
+  setText('starPromptLaterLabel', t('starPromptLaterLabel'));
   setText('progressInfo', `${t('progressStart')} (0%)`);
   setText('step1', t('progressVideo'));
   setText('step2', t('progressTracks'));
@@ -1364,7 +1462,7 @@ function getExtensionVersion() {
   if (typeof chrome !== 'undefined' && chrome.runtime?.getManifest) {
     return chrome.runtime.getManifest().version;
   }
-  return '2.1.0';
+  return '3.0.0';
 }
 
 function t(key, substitutions = []) {

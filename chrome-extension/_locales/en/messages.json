@@ -365,5 +365,23 @@
         "content": "$1"
       }
     }
+  },
+  "starPromptKicker": {
+    "message": "MILESTONE REACHED"
+  },
+  "starPromptTitle": {
+    "message": "You've used KenEasy 10 times!"
+  },
+  "starPromptBody": {
+    "message": "We're so glad KenEasy has been helpful to you! If you enjoy this tool, could you spare a moment to give us a Star on GitHub? It means the world to us!"
+  },
+  "starPromptActionLabel": {
+    "message": "Star on GitHub ★"
+  },
+  "starPromptLaterLabel": {
+    "message": "Maybe later"
+  },
+  "starPromptThankToast": {
+    "message": "Thank you so much for your support! ❤️"
   }
 }

@@ -80,6 +80,7 @@ Live animated walkthroughs of the 3 core features (auto-playing in a loop, no do
 | Transparent 5-stage pipeline | Crystal-clear visibility into resolve, video fetch, audio fetch, local fMP4 remux, and file save. |
 | Background safe & notifications | Safe to close popup or switch tabs; sends native Chrome desktop notification on download completion. |
 | Cancellation control | One-click download cancellation via AbortController to immediately reclaim memory and network bandwidth. |
+| 10-usage star milestone | Polite, non-intrusive modal after 10 exports inviting users to star the GitHub project with snooze support. |
 | Smart updates | Store users receive silent auto-updates; developer unpacked users enjoy GitHub release checks. |
 
 ## Built-in Help & About

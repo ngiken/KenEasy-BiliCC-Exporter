@@ -1,8 +1,10 @@
 # Changelog
 
-## 2.1.0 - 2026-10-09
+## 3.0.0 - 2026-10-09
 
-Major media downloader modernization, live metrics dashboard & zero-anxiety streaming engine release.
+Major media downloader modernization, 10-usage milestone star prompt & zero-anxiety streaming engine release.
+
+- **10-Usage Milestone & Open-Source Star Prompt Modal**: Added a delightful, non-intrusive milestone dialog triggering after 10 successful subtitle or media downloads, politely inviting users to support the project with a GitHub Star (`⭐ MILESTONE REACHED`). Features responsive GitHub jump, "Maybe later" snooze, and permanent state persistence.
 
 - **Live Multi-Metric Download Dashboard**: Replaced the static, vague progress bar with an industry-grade live metrics board displaying real-time transfer speed (MB/s), transferred/total bytes (`loaded / total MB`), and dynamic rolling ETA estimation (`remaining seconds/minutes`), giving users complete visibility and peace of mind during large video downloads.
 - **Root-Cause Resolution of the 18% Progress Stagnation**: Re-engineered the underlying stream reader in `media-download-service.js`. Implemented an adaptive asymptotic progression heuristic that ensures steady forward progress even when Bilibili CDN omits Content-Length headers or delivers chunked encoding, permanently eliminating the issue where downloads appeared frozen at 18%.
