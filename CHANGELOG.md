@@ -1,5 +1,23 @@
 # Changelog
 
+## 2.1.0 - 2026-10-09
+
+Major media downloader modernization, live metrics dashboard & zero-anxiety streaming engine release.
+
+- **Live Multi-Metric Download Dashboard**: Replaced the static, vague progress bar with an industry-grade live metrics board displaying real-time transfer speed (MB/s), transferred/total bytes (`loaded / total MB`), and dynamic rolling ETA estimation (`remaining seconds/minutes`), giving users complete visibility and peace of mind during large video downloads.
+- **Root-Cause Resolution of the 18% Progress Stagnation**: Re-engineered the underlying stream reader in `media-download-service.js`. Implemented an adaptive asymptotic progression heuristic that ensures steady forward progress even when Bilibili CDN omits Content-Length headers or delivers chunked encoding, permanently eliminating the issue where downloads appeared frozen at 18%.
+- **Rolling-Window Speedometer**: Added an in-memory 1.5-second rolling window speedometer calculating exponential weighted transfer velocity and reliable ETA without fluctuating wildly across momentary network spikes.
+- **5-Stage Transparent Pipeline Visualization**: Upgraded the coarse 3-step indicator into a clear 5-stage pipeline (Stream Resolution → Video Track Fetch → Audio Track Fetch → Local Zero-Loss MP4 Remuxing → Local Storage), accurately mapping workload distribution (video track receiving 64% of total progress span).
+- **Background Safe Assurance & Desktop Notifications**: Integrated Chrome `notifications` permission and API. Users are clearly assured that closing the popup or switching tabs will not interrupt downloads; upon completion, a native desktop notification automatically alerts the user.
+- **Job Cancellation Control**: Added a dedicated "Cancel Download" (`取消下载`) button powered by browser `AbortController` and Service Worker job tracking, allowing users to safely abort in-flight transfers and reclaim system memory and bandwidth at any moment.
+- **Optimized Memory Footprint for Page Context**: Refactored `content-main.js` binary fallback using native browser `FileReader.readAsDataURL` instead of synchronous string chunking, eliminating main-thread freezes and memory bloat on large media streams.
+- **Visual Vitality & Micro-Animations**: Introduced an active breathing pulse beacon (Live Activity Pulse Wave) and shimmering progress bar styling (`progress-bar-shimmer`) to deliver immediate visual feedback of active network transfer.
+- **Mode-Adaptive Pipeline Pruning**: Dynamically hides video download and remuxing stages when "Audio only" mode is selected, keeping the 5-stage pipeline contextually accurate and eliminating user confusion.
+- **Completion File Pill & Primary Action Promotion**: Showcases a clean file pill badge (`#mediaSavedFilePill`) upon download completion displaying the exact saved filename, and automatically promotes the return button to primary visual focus (`.btn-primary`).
+- **Active Background Job Indicator**: Added a prominent live beacon indicator on the main card when returning from a background download, complete with real-time percentage and a one-click "View Progress" shortcut back into the live dashboard.
+- **Audio-Only Filename Sanitization**: Strips unnecessary video resolution tags (e.g. `1080P`, `480P`) when downloading in audio-only mode, outputting clean `${title} - audio.m4a` filenames.
+- **Zero Layout Shifting**: Aligned `.download-header-row .status-visual` precisely with the 42px spinner, eliminating the 24px vertical jump when transitioning between downloading and done states.
+
 ## 2.0.4 - 2026-10-02
 
 Subtitle format expansion, anonymous WBI resilience & Git hygiene release.

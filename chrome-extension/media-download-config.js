@@ -1,4 +1,4 @@
-﻿(function registerMediaDownloadConfig(root) {
+(function registerMediaDownloadConfig(root) {
   const QUALITY_LADDER = Object.freeze([
     Object.freeze({ qn: 127, labelKey: 'quality8k', fallbackLabel: '8K', rank: 100 }),
     Object.freeze({ qn: 126, labelKey: 'qualityDolbyVision', fallbackLabel: 'Dolby Vision', rank: 95 }),
@@ -72,7 +72,9 @@
   const MESSAGE_TYPES = Object.freeze({
     resolveMediaOptions: 'RESOLVE_MEDIA_OPTIONS',
     startMediaDownload: 'START_MEDIA_DOWNLOAD',
+    cancelMediaDownload: 'CANCEL_MEDIA_DOWNLOAD',
     mediaDownloadProgress: 'MEDIA_DOWNLOAD_PROGRESS',
+    getActiveJobs: 'GET_ACTIVE_JOBS',
   });
 
   const config = Object.freeze({
@@ -86,13 +88,18 @@
     defaultQualityId: 'auto',
     autoQualityId: 'auto',
     maxParallelFetches: 2,
+    progressThrottleMs: 120,
+    speedSampleWindowMs: 1500,
     progress: Object.freeze({
-      resolve: 8,
-      select: 14,
-      videoStart: 18,
-      audioStart: 52,
-      remuxStart: 86,
-      saveStart: 94,
+      resolve: 4,
+      select: 8,
+      videoStart: 10,
+      videoEnd: 74,
+      audioStart: 74,
+      audioEnd: 88,
+      remuxStart: 88,
+      remuxEnd: 95,
+      saveStart: 95,
       done: 100,
     }),
   });

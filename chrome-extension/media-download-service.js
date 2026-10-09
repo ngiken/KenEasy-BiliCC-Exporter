@@ -16,6 +16,43 @@
 
   const activeJobs = new Map();
 
+  /**
+   * Rolling window speedometer for computing smooth transfer speeds and ETA.
+   */
+  function createSpeedometer(windowMs = 1500) {
+    const samples = [];
+    let totalLoaded = 0;
+    return {
+      record(loadedBytes, now = Date.now()) {
+        totalLoaded = loadedBytes;
+        samples.push({ time: now, bytes: loadedBytes });
+        const cutoff = now - windowMs;
+        while (samples.length > 2 && samples[0].time < cutoff) {
+          samples.shift();
+        }
+      },
+      getSpeed(now = Date.now()) {
+        if (samples.length < 2) return 0;
+        const earliest = samples[0];
+        const latest = samples[samples.length - 1];
+        const elapsedSec = (latest.time - earliest.time) / 1000;
+        if (elapsedSec <= 0.05) return 0;
+        const bytesDelta = latest.bytes - earliest.bytes;
+        return Math.max(0, bytesDelta / elapsedSec);
+      },
+      getEta(totalBytes, now = Date.now()) {
+        if (!totalBytes || totalBytes <= totalLoaded) return 0;
+        const speed = this.getSpeed(now);
+        if (speed < 1024) return null;
+        const remainingBytes = totalBytes - totalLoaded;
+        return Math.max(1, Math.round(remainingBytes / speed));
+      },
+      getLoaded() {
+        return totalLoaded;
+      },
+    };
+  }
+
   function pageProfile() {
     return {
       credentials: 'include',
@@ -43,16 +80,31 @@
     return response.json();
   }
 
-  function emitProgress(jobId, payload) {
+  function emitProgress(jobId, payload, force = false) {
     const job = activeJobs.get(jobId);
     if (job) {
-      job.lastState = payload;
+      job.lastState = Object.freeze({
+        ...(job.lastState || {}),
+        ...payload,
+        updatedAt: Date.now(),
+      });
     }
+
+    const now = Date.now();
+    const throttleMs = CONFIG.progressThrottleMs || 120;
+    if (!force && job && job.lastEmitTime && (now - job.lastEmitTime < throttleMs)) {
+      return;
+    }
+    if (job) {
+      job.lastEmitTime = now;
+    }
+
     const message = {
       type: CONFIG.messages.mediaDownloadProgress,
       jobId,
-      ...payload,
+      ...(job ? job.lastState : payload),
     };
+
     try {
       chrome.runtime.sendMessage(message, () => {
         void chrome.runtime.lastError;
@@ -146,35 +198,93 @@
     return list;
   }
 
-  async function readResponseBuffer(response, onProgress) {
+  async function readResponseBuffer(response, onProgress, signal) {
     const total = Number(response.headers.get('content-length') || 0);
+    const speedometer = createSpeedometer(CONFIG.speedSampleWindowMs || 1500);
+
     if (!response.body || !response.body.getReader) {
+      if (signal?.aborted) throw new Error('Download cancelled.');
       const buffer = await response.arrayBuffer();
-      if (onProgress) onProgress(1, buffer.byteLength, buffer.byteLength);
+      if (onProgress) {
+        onProgress({
+          ratio: 1,
+          loadedBytes: buffer.byteLength,
+          totalBytes: buffer.byteLength,
+          speedBps: 0,
+          etaSeconds: 0,
+          indeterminate: false,
+        });
+      }
       return buffer;
     }
 
     const reader = response.body.getReader();
+    if (signal) {
+      signal.addEventListener('abort', () => {
+        try { reader.cancel(); } catch (_) {}
+      }, { once: true });
+    }
+
     const chunks = [];
     let received = 0;
+    const assumedScale = 30 * 1024 * 1024; // 30MB baseline for asymptotic progression if total missing
+
     while (true) {
+      if (signal?.aborted) {
+        try { reader.cancel(); } catch (_) {}
+        throw new Error('Download cancelled.');
+      }
       const { done, value } = await reader.read();
       if (done) break;
       chunks.push(value);
       received += value.byteLength;
-      if (onProgress) onProgress(total ? received / total : 0, received, total);
+      speedometer.record(received);
+
+      if (onProgress) {
+        let ratio;
+        let indeterminate = false;
+        if (total > 0) {
+          ratio = Math.min(1, received / total);
+        } else {
+          indeterminate = true;
+          // Smooth asymptotic progression preventing stagnation at 18%
+          ratio = Math.min(0.95, 1 - Math.exp(-received / assumedScale));
+        }
+
+        onProgress({
+          ratio,
+          loadedBytes: received,
+          totalBytes: total,
+          speedBps: speedometer.getSpeed(),
+          etaSeconds: speedometer.getEta(total),
+          indeterminate,
+        });
+      }
     }
+
+    if (onProgress) {
+      onProgress({
+        ratio: 1,
+        loadedBytes: received,
+        totalBytes: total || received,
+        speedBps: speedometer.getSpeed(),
+        etaSeconds: 0,
+        indeterminate: false,
+      });
+    }
+
     return concatArrayBuffers(chunks);
   }
 
-  async function fetchBinaryViaWorker(url, onProgress) {
-    const response = await fetch(url, cdnProfile());
+  async function fetchBinaryViaWorker(url, onProgress, signal) {
+    const response = await fetch(url, { ...cdnProfile(), signal });
     if (!response.ok) throw new Error('Media HTTP ' + response.status);
-    return readResponseBuffer(response, onProgress);
+    return readResponseBuffer(response, onProgress, signal);
   }
 
-  async function fetchBinaryViaPage(tabId, url, onProgress) {
+  async function fetchBinaryViaPage(tabId, url, onProgress, signal) {
     if (!tabId) throw new Error('No tab for page-context media fetch.');
+    if (signal?.aborted) throw new Error('Download cancelled.');
     // Page-context fetch inherits bilibili cookies and natural Referer.
     const response = await chrome.tabs.sendMessage(tabId, {
       type: 'FETCH_BINARY_FROM_PAGE',
@@ -186,13 +296,23 @@
     const binary = atob(response.base64);
     const bytes = new Uint8Array(binary.length);
     for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
-    if (onProgress) onProgress(1, bytes.byteLength, bytes.byteLength);
+    if (onProgress) {
+      onProgress({
+        ratio: 1,
+        loadedBytes: bytes.byteLength,
+        totalBytes: bytes.byteLength,
+        speedBps: 0,
+        etaSeconds: 0,
+        indeterminate: false,
+      });
+    }
     return bytes.buffer;
   }
 
   async function fetchBinary(url, onProgress, options) {
     const candidates = collectCandidateUrls(url, options && options.backupUrls);
     const tabId = options && options.tabId;
+    const signal = options && options.signal;
     const errors = [];
 
     // Ensure CDN Referer rewrite is active before worker fetch.
@@ -203,9 +323,13 @@
     }
 
     for (const candidate of candidates) {
+      if (signal?.aborted) throw new Error('Download cancelled.');
       try {
-        return await fetchBinaryViaWorker(candidate, onProgress);
+        return await fetchBinaryViaWorker(candidate, onProgress, signal);
       } catch (error) {
+        if (signal?.aborted || error.name === 'AbortError' || error.message?.includes('cancelled')) {
+          throw error;
+        }
         errors.push('worker:' + (error.message || error));
       }
     }
@@ -213,9 +337,13 @@
     // Fallback: page world fetch (correct Referer + cookies).
     if (tabId) {
       for (const candidate of candidates) {
+        if (signal?.aborted) throw new Error('Download cancelled.');
         try {
-          return await fetchBinaryViaPage(tabId, candidate, onProgress);
+          return await fetchBinaryViaPage(tabId, candidate, onProgress, signal);
         } catch (error) {
+          if (signal?.aborted || error.name === 'AbortError' || error.message?.includes('cancelled')) {
+            throw error;
+          }
           errors.push('page:' + (error.message || error));
         }
       }
@@ -245,8 +373,11 @@
 
   function buildFilename(request, mode, plan) {
     const title = safeFilenamePart(request.title || request.bvid || 'bilibili', 96);
+    if (mode.id === 'audio_only') {
+      return `${title} - audio.${mode.extension}`;
+    }
     const quality = safeFilenamePart(plan.qualityLabel || `QN${plan.qualityQn || ''}`, 24);
-    const modeTag = mode.id === 'audio_only' ? 'audio' : mode.id === 'video_only' ? 'video' : 'media';
+    const modeTag = mode.id === 'video_only' ? 'video' : 'media';
     return `${title} - ${quality} - ${modeTag}.${mode.extension}`;
   }
 
@@ -344,13 +475,13 @@
     return { downloadId: response.downloadId || 1, filename };
   }
 
-  async function materializeMedia({ mode, plan, onPhaseProgress, tabId }) {
-    const fetchOptsBase = { tabId };
+  async function materializeMedia({ mode, plan, onPhaseProgress, tabId, signal }) {
+    const fetchOptsBase = { tabId, signal };
 
     if (plan.kind === 'durl') {
-      onPhaseProgress?.('video', 0);
-      const buffer = await fetchBinary(plan.videoUrl, (ratio) => {
-        onPhaseProgress?.('video', ratio);
+      onPhaseProgress?.('video', 0, { loadedBytes: 0, totalBytes: 0, speedBps: 0, etaSeconds: null });
+      const buffer = await fetchBinary(plan.videoUrl, (info) => {
+        onPhaseProgress?.('video', info.ratio, info);
       }, Object.assign({}, fetchOptsBase, { backupUrls: plan.videoBackupUrls || [] }));
       return {
         buffer,
@@ -362,52 +493,111 @@
     let audioBuffer = null;
 
     if (mode.needsVideo) {
-      onPhaseProgress?.('video', 0);
-      videoBuffer = await fetchBinary(plan.videoUrl, (ratio) => {
-        onPhaseProgress?.('video', ratio);
+      onPhaseProgress?.('video', 0, { loadedBytes: 0, totalBytes: 0, speedBps: 0, etaSeconds: null });
+      videoBuffer = await fetchBinary(plan.videoUrl, (info) => {
+        onPhaseProgress?.('video', info.ratio, info);
       }, Object.assign({}, fetchOptsBase, { backupUrls: plan.videoBackupUrls || [] }));
     }
 
+    if (signal?.aborted) throw new Error('Download cancelled.');
+
     if (mode.needsAudio) {
-      onPhaseProgress?.('audio', 0);
-      audioBuffer = await fetchBinary(plan.audioUrl, (ratio) => {
-        onPhaseProgress?.('audio', ratio);
+      onPhaseProgress?.('audio', 0, { loadedBytes: 0, totalBytes: 0, speedBps: 0, etaSeconds: null });
+      audioBuffer = await fetchBinary(plan.audioUrl, (info) => {
+        onPhaseProgress?.('audio', info.ratio, info);
       }, Object.assign({}, fetchOptsBase, { backupUrls: plan.audioBackupUrls || [] }));
     }
 
+    if (signal?.aborted) throw new Error('Download cancelled.');
+
     if (mode.id === 'video_with_audio') {
-      onPhaseProgress?.('remux', 0.1);
+      const combinedLoaded = (videoBuffer?.byteLength || 0) + (audioBuffer?.byteLength || 0);
+      onPhaseProgress?.('remux', 0.2, {
+        loadedBytes: combinedLoaded,
+        totalBytes: combinedLoaded,
+        speedBps: 0,
+        etaSeconds: 0,
+      });
       const merged = Remux.mergeDashVideoAudio(videoBuffer, audioBuffer);
-      onPhaseProgress?.('remux', 1);
+      onPhaseProgress?.('remux', 1, {
+        loadedBytes: merged.byteLength,
+        totalBytes: merged.byteLength,
+        speedBps: 0,
+        etaSeconds: 0,
+      });
       return { buffer: merged, mime: 'video/mp4' };
     }
 
     if (mode.id === 'audio_only') {
-      onPhaseProgress?.('remux', 0.2);
+      const loaded = audioBuffer?.byteLength || 0;
+      onPhaseProgress?.('remux', 0.2, {
+        loadedBytes: loaded,
+        totalBytes: loaded,
+        speedBps: 0,
+        etaSeconds: 0,
+      });
       const normalized = Remux.normalizeSingleTrack(audioBuffer, 1);
-      onPhaseProgress?.('remux', 1);
+      onPhaseProgress?.('remux', 1, {
+        loadedBytes: normalized.byteLength,
+        totalBytes: normalized.byteLength,
+        speedBps: 0,
+        etaSeconds: 0,
+      });
       return { buffer: normalized, mime: 'audio/mp4' };
     }
 
-    onPhaseProgress?.('remux', 0.2);
+    const loaded = videoBuffer?.byteLength || 0;
+    onPhaseProgress?.('remux', 0.2, {
+      loadedBytes: loaded,
+      totalBytes: loaded,
+      speedBps: 0,
+      etaSeconds: 0,
+    });
     const normalized = Remux.normalizeSingleTrack(videoBuffer, 1);
-    onPhaseProgress?.('remux', 1);
+    onPhaseProgress?.('remux', 1, {
+      loadedBytes: normalized.byteLength,
+      totalBytes: normalized.byteLength,
+      speedBps: 0,
+      etaSeconds: 0,
+    });
     return { buffer: normalized, mime: 'video/mp4' };
   }
 
-  function mapPhaseToPercent(phase, ratio) {
-    const progress = CONFIG.progress;
+  function mapPhaseToPercent(phase, ratio, modeId = 'video_with_audio') {
+    const p = CONFIG.progress;
     const clamped = Math.max(0, Math.min(1, Number(ratio) || 0));
+
+    if (modeId === 'audio_only') {
+      if (phase === 'audio') {
+        return Math.round(p.videoStart + (p.audioEnd - p.videoStart) * clamped);
+      }
+      if (phase === 'remux') {
+        return Math.round(p.remuxStart + (p.remuxEnd - p.remuxStart) * clamped);
+      }
+      return p.select;
+    }
+
+    if (modeId === 'video_only') {
+      if (phase === 'video') {
+        return Math.round(p.videoStart + (p.audioEnd - p.videoStart) * clamped);
+      }
+      if (phase === 'remux') {
+        return Math.round(p.remuxStart + (p.remuxEnd - p.remuxStart) * clamped);
+      }
+      return p.select;
+    }
+
+    // Default: video_with_audio
     if (phase === 'video') {
-      return Math.round(progress.videoStart + (progress.audioStart - progress.videoStart - 2) * clamped);
+      return Math.round(p.videoStart + (p.videoEnd - p.videoStart) * clamped);
     }
     if (phase === 'audio') {
-      return Math.round(progress.audioStart + (progress.remuxStart - progress.audioStart - 2) * clamped);
+      return Math.round(p.audioStart + (p.audioEnd - p.audioStart) * clamped);
     }
     if (phase === 'remux') {
-      return Math.round(progress.remuxStart + (progress.saveStart - progress.remuxStart) * clamped);
+      return Math.round(p.remuxStart + (p.remuxEnd - p.remuxStart) * clamped);
     }
-    return progress.select;
+    return p.select;
   }
 
   async function resolveMediaOptions(request, helpers) {
@@ -428,7 +618,15 @@
       throw new Error('Download job already running.');
     }
 
-    const controller = { cancelled: false, request };
+    const abortController = new AbortController();
+    const controller = {
+      cancelled: false,
+      request,
+      abortController,
+      startTime: Date.now(),
+      lastState: null,
+      lastEmitTime: 0,
+    };
     activeJobs.set(jobId, controller);
 
     try {
@@ -437,17 +635,25 @@
         percent: CONFIG.progress.resolve,
         phase: 'resolve',
         messageKey: 'mediaProgressResolve',
-      });
+        loadedBytes: 0,
+        totalBytes: 0,
+        speedBps: 0,
+        etaSeconds: null,
+      }, true);
 
       const { payload, strategyId } = await resolveBestPayload(request, helpers.signWbi);
-      if (controller.cancelled) throw new Error('Download cancelled.');
+      if (controller.cancelled || abortController.signal.aborted) throw new Error('Download cancelled.');
 
       emitProgress(jobId, {
         percent: CONFIG.progress.select,
         phase: 'select',
         messageKey: 'mediaProgressSelect',
         strategyId,
-      });
+        loadedBytes: 0,
+        totalBytes: 0,
+        speedBps: 0,
+        etaSeconds: null,
+      }, true);
 
       const { mode, plan } = Resolver.resolvePlan(
         payload,
@@ -459,10 +665,17 @@
         mode,
         plan,
         tabId: request.tabId || null,
-        onPhaseProgress: (phase, ratio) => {
+        signal: abortController.signal,
+        onPhaseProgress: (phase, ratio, metricInfo = {}) => {
           emitProgress(jobId, {
-            percent: mapPhaseToPercent(phase, ratio),
+            percent: mapPhaseToPercent(phase, ratio, mode.id),
             phase,
+            modeId: mode.id,
+            loadedBytes: metricInfo.loadedBytes || 0,
+            totalBytes: metricInfo.totalBytes || 0,
+            speedBps: metricInfo.speedBps || 0,
+            etaSeconds: metricInfo.etaSeconds ?? null,
+            indeterminate: !!metricInfo.indeterminate,
             messageKey:
               phase === 'video'
                 ? 'mediaProgressVideo'
@@ -473,13 +686,17 @@
         },
       });
 
-      if (controller.cancelled) throw new Error('Download cancelled.');
+      if (controller.cancelled || abortController.signal.aborted) throw new Error('Download cancelled.');
 
       emitProgress(jobId, {
         percent: CONFIG.progress.saveStart,
         phase: 'save',
         messageKey: 'mediaProgressSave',
-      });
+        loadedBytes: buffer.byteLength,
+        totalBytes: buffer.byteLength,
+        speedBps: 0,
+        etaSeconds: 0,
+      }, true);
 
       const filename = buildFilename(request, mode, plan);
       const saved = await saveBuffer(buffer, filename, mime);
@@ -489,7 +706,11 @@
         phase: 'done',
         messageKey: 'mediaProgressDone',
         filename: saved.filename,
-      });
+        loadedBytes: buffer.byteLength,
+        totalBytes: buffer.byteLength,
+        speedBps: 0,
+        etaSeconds: 0,
+      }, true);
 
       return {
         jobId,
@@ -506,6 +727,22 @@
     }
   }
 
+  function cancelMediaDownload(jobId) {
+    const job = activeJobs.get(jobId);
+    if (!job) return false;
+    job.cancelled = true;
+    if (job.abortController) {
+      try { job.abortController.abort(); } catch (_) {}
+    }
+    emitProgress(jobId, {
+      percent: 0,
+      phase: 'cancelled',
+      messageKey: 'mediaProgressCancelled',
+    }, true);
+    activeJobs.delete(jobId);
+    return true;
+  }
+
   function getActiveJobs() {
     const jobs = [];
     for (const [jobId, job] of activeJobs.entries()) {
@@ -519,7 +756,10 @@
   root.KenEasyMediaDownloadService = Object.freeze({
     resolveMediaOptions,
     startMediaDownload,
+    cancelMediaDownload,
     getActiveJobs,
+    createSpeedometer,
+    mapPhaseToPercent,
     messageTypes: CONFIG.messages,
   });
 }(globalThis));

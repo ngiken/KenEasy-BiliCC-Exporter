@@ -310,5 +310,60 @@
   },
   "copyFailedToast": {
     "message": "Failed to copy subtitles to clipboard"
+  },
+  "metricSpeedLabel": {
+    "message": "Speed"
+  },
+  "metricSizeLabel": {
+    "message": "Transferred"
+  },
+  "metricEtaLabel": {
+    "message": "ETA"
+  },
+  "metricDoneSpeed": {
+    "message": "Done"
+  },
+  "mediaStepVideo": {
+    "message": "Video stream"
+  },
+  "mediaStepAudio": {
+    "message": "Audio stream"
+  },
+  "mediaStepRemux": {
+    "message": "Local MP4 remuxing"
+  },
+  "mediaStepSave": {
+    "message": "Saving local file"
+  },
+  "mediaBgAssurance": {
+    "message": "Safe to close popup or switch tabs. Download continues in background with desktop notification on finish."
+  },
+  "activeJobRunning": {
+    "message": "Background download in progress"
+  },
+  "activeJobViewBtn": {
+    "message": "View Progress"
+  },
+  "cancelButton": {
+    "message": "Cancel"
+  },
+  "mediaProgressCancelled": {
+    "message": "Download cancelled"
+  },
+  "notificationDownloadDone": {
+    "message": "Download complete! Saved as: $FILENAME$",
+    "placeholders": {
+      "filename": {
+        "content": "$1"
+      }
+    }
+  },
+  "notificationDownloadFailed": {
+    "message": "Download failed: $ERROR$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
   }
 }

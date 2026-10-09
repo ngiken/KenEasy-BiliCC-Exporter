@@ -310,5 +310,60 @@
   },
   "copyFailedToast": {
     "message": "复制到剪贴板失败"
+  },
+  "metricSpeedLabel": {
+    "message": "实时速度"
+  },
+  "metricSizeLabel": {
+    "message": "传输大小"
+  },
+  "metricEtaLabel": {
+    "message": "预计剩余"
+  },
+  "metricDoneSpeed": {
+    "message": "完成"
+  },
+  "mediaStepVideo": {
+    "message": "拉取视频流"
+  },
+  "mediaStepAudio": {
+    "message": "拉取音频流"
+  },
+  "mediaStepRemux": {
+    "message": "本地合成 MP4"
+  },
+  "mediaStepSave": {
+    "message": "落盘保存文件"
+  },
+  "mediaBgAssurance": {
+    "message": "后台安心下载中：可随时关闭弹窗或切换标签页，下载不受影响，完成后将发送系统通知提醒。"
+  },
+  "activeJobRunning": {
+    "message": "后台下载进行中"
+  },
+  "activeJobViewBtn": {
+    "message": "查看进度"
+  },
+  "cancelButton": {
+    "message": "取消下载"
+  },
+  "mediaProgressCancelled": {
+    "message": "已取消本次下载任务"
+  },
+  "notificationDownloadDone": {
+    "message": "视频下载完成！已成功保存: $FILENAME$",
+    "placeholders": {
+      "filename": {
+        "content": "$1"
+      }
+    }
+  },
+  "notificationDownloadFailed": {
+    "message": "视频下载失败: $ERROR$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
   }
 }

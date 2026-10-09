@@ -36,6 +36,7 @@ const MESSAGES = Object.freeze({
   fetchFromPage: 'FETCH_API_FROM_PAGE',
   resolveMediaOptions: globalThis.KENEASY_MEDIA_DOWNLOAD_CONFIG.messages.resolveMediaOptions,
   startMediaDownload: globalThis.KENEASY_MEDIA_DOWNLOAD_CONFIG.messages.startMediaDownload,
+  cancelMediaDownload: globalThis.KENEASY_MEDIA_DOWNLOAD_CONFIG.messages.cancelMediaDownload,
   getActiveJobs: 'GET_ACTIVE_JOBS',
   checkForUpdate: globalThis.KENEASY_UPDATE_CONFIG.messages.checkForUpdate,
   applyUpdate: globalThis.KENEASY_UPDATE_CONFIG.messages.applyUpdate,
@@ -365,8 +366,52 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
   if (request.type === MESSAGES.startMediaDownload) {
     globalThis.KenEasyMediaDownloadService.startMediaDownload(request, mediaHelpers)
-      .then((data) => sendResponse({ success: true, data }))
-      .catch((error) => sendResponse({ success: false, error: error.message || String(error) }));
+      .then((data) => {
+        try {
+          if (chrome.notifications && typeof chrome.notifications.create === 'function') {
+            const extName = chrome.i18n?.getMessage('extensionName') || 'KenEasy BiliCC Exporter';
+            const msg = chrome.i18n?.getMessage('notificationDownloadDone')
+              ? chrome.i18n.getMessage('notificationDownloadDone').replace('{filename}', data?.filename || '')
+              : `Download complete: ${data?.filename || 'media.mp4'}`;
+            chrome.notifications.create({
+              type: 'basic',
+              iconUrl: 'icons/icon128.png',
+              title: extName,
+              message: msg,
+              priority: 2,
+            }, () => { void chrome.runtime.lastError; });
+          }
+        } catch (_) {}
+        sendResponse({ success: true, data });
+      })
+      .catch((error) => {
+        const errMsg = error?.message || String(error);
+        if (!errMsg.includes('cancelled')) {
+          try {
+            if (chrome.notifications && typeof chrome.notifications.create === 'function') {
+              const extName = chrome.i18n?.getMessage('extensionName') || 'KenEasy BiliCC Exporter';
+              const rawMsg = chrome.i18n?.getMessage('notificationDownloadFailed');
+              const msg = rawMsg
+                ? rawMsg.replace('{error}', errMsg)
+                : `Download failed: ${errMsg}`;
+              chrome.notifications.create({
+                type: 'basic',
+                iconUrl: 'icons/icon128.png',
+                title: extName,
+                message: msg,
+                priority: 2,
+              }, () => { void chrome.runtime.lastError; });
+            }
+          } catch (_) {}
+        }
+        sendResponse({ success: false, error: errMsg });
+      });
+    return true;
+  }
+
+  if (request.type === MESSAGES.cancelMediaDownload) {
+    const success = globalThis.KenEasyMediaDownloadService.cancelMediaDownload(request.jobId);
+    sendResponse({ success });
     return true;
   }
 

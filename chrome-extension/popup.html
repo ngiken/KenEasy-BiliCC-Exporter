@@ -91,6 +91,11 @@
             </label>
           </div>
           <p class="media-hint" id="mediaHint">Download the current video with audio, or audio only.</p>
+          <div class="active-job-indicator" id="activeJobIndicator" hidden>
+            <span class="active-job-pulse" aria-hidden="true"></span>
+            <span class="active-job-text" id="activeJobText">正在后台下载中...</span>
+            <button class="button btn-xs" id="activeJobViewBtn" type="button">查看进度</button>
+          </div>
           <button class="button btn-primary" id="mediaDownloadBtn" type="button">
             <span id="mediaDownloadBtnLabel">Download media</span>
             <span class="button-icon" aria-hidden="true">
@@ -107,23 +112,69 @@
         </button>
       </section>
 
-            <section id="stateDownloading" hidden aria-live="polite">
-        <div class="status-box extracting-box">
-          <div class="spinner" id="mediaSpinner" aria-hidden="true"></div>
-          <div class="status-visual status-visual-done" id="mediaDoneVisual" hidden aria-hidden="true"><span>✓</span></div>
-          <div class="status-kicker" id="downloadingKicker">DOWNLOADING MEDIA</div>
+      <section id="stateDownloading" hidden aria-live="polite">
+        <div class="status-box downloading-dashboard-box">
+          <div class="download-header-row">
+            <div class="spinner" id="mediaSpinner" aria-hidden="true"></div>
+            <div class="status-visual status-visual-done" id="mediaDoneVisual" hidden aria-hidden="true"><span>✓</span></div>
+            <div class="header-status-col">
+              <div class="kicker-with-pulse">
+                <span class="live-pulse-dot" id="mediaPulseDot" aria-hidden="true"></span>
+                <span class="status-kicker" id="downloadingKicker">DOWNLOADING MEDIA</span>
+              </div>
+              <div class="progress-info-title" id="mediaProgressInfo">Preparing media download (0%)</div>
+            </div>
+          </div>
+
           <div class="progress-bar-container" role="progressbar" aria-valuemin="0" aria-valuemax="100">
-            <div class="progress-bar" id="mediaProgressBar"></div>
+            <div class="progress-bar progress-bar-shimmer" id="mediaProgressBar"></div>
           </div>
-          <div class="progress-info" id="mediaProgressInfo">Preparing media download (0%)</div>
-          <div class="steps">
+
+          <!-- Live Metrics Grid -->
+          <div class="media-metrics-grid" id="mediaMetricsGrid">
+            <div class="metric-card">
+              <span class="metric-label" id="mediaMetricSpeedLabel">Speed</span>
+              <span class="metric-value" id="mediaMetricSpeed">--</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label" id="mediaMetricSizeLabel">Transferred</span>
+              <span class="metric-value" id="mediaMetricSize">--</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label" id="mediaMetricEtaLabel">ETA</span>
+              <span class="metric-value" id="mediaMetricEta">--</span>
+            </div>
+          </div>
+
+          <!-- Saved File Pill -->
+          <div class="media-saved-file-pill" id="mediaSavedFilePill" hidden>
+            <span class="file-icon" aria-hidden="true">📄</span>
+            <span class="file-name-text" id="mediaSavedFileName"></span>
+          </div>
+
+          <!-- 5-Stage Transparent Pipeline -->
+          <div class="steps pipeline-steps">
             <div class="step active" id="mediaStepRow1"><div class="step-dot"></div><span id="mediaStep1">Resolving streams</span></div>
-            <div class="step" id="mediaStepRow2"><div class="step-dot"></div><span id="mediaStep2">Downloading tracks</span></div>
-            <div class="step" id="mediaStepRow3"><div class="step-dot"></div><span id="mediaStep3">Saving local file</span></div>
+            <div class="step" id="mediaStepRow2"><div class="step-dot"></div><span id="mediaStep2">Video stream</span></div>
+            <div class="step" id="mediaStepRow3"><div class="step-dot"></div><span id="mediaStep3">Audio stream</span></div>
+            <div class="step" id="mediaStepRow4"><div class="step-dot"></div><span id="mediaStep4">Local remuxing</span></div>
+            <div class="step" id="mediaStepRow5"><div class="step-dot"></div><span id="mediaStep5">Saving file</span></div>
           </div>
-          <button class="button btn-secondary btn-back" id="mediaBackBtn" type="button" style="margin-top: 14px;">
-            <span id="mediaBackBtnLabel">返回</span>
-          </button>
+
+          <!-- Background Safe Assurance Notice -->
+          <div class="bg-assurance-badge" id="mediaBgAssurance">
+            <span class="bg-assurance-icon">💡</span>
+            <span class="bg-assurance-text" id="mediaBgAssuranceText">Safe to close popup or switch tabs. Download continues in background with notification on finish.</span>
+          </div>
+
+          <div class="media-actions-row">
+            <button class="button btn-secondary btn-cancel" id="mediaCancelBtn" type="button">
+              <span id="mediaCancelBtnLabel">Cancel</span>
+            </button>
+            <button class="button btn-secondary btn-back" id="mediaBackBtn" type="button">
+              <span id="mediaBackBtnLabel">Return</span>
+            </button>
+          </div>
         </div>
       </section>
 
@@ -185,7 +236,7 @@
 
     <footer class="footer">
       <div class="footer-left">
-        <span id="footerVersion">KenEasy BiliCC Exporter v2.0.4</span>
+        <span id="footerVersion">KenEasy BiliCC Exporter v2.1.0</span>
         <button type="button" class="footer-update-btn" id="footerUpdateBtn">Update</button>
       </div>
       <div class="footer-right">

@@ -90,20 +90,28 @@
       })
         .then(async (response) => {
           if (!response.ok) throw new Error('Media HTTP ' + response.status);
-          const buffer = await response.arrayBuffer();
-          const bytes = new Uint8Array(buffer);
-          let binary = '';
-          const chunk = 0x8000;
-          for (let i = 0; i < bytes.length; i += chunk) {
-            binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
-          }
-          window.postMessage({
-            type: MESSAGE_TYPES.binaryFetchResponse,
-            requestId,
-            success: true,
-            base64: btoa(binary),
-            byteLength: bytes.length,
-          }, '*');
+          const blob = await response.blob();
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            const dataUrl = String(reader.result || '');
+            const base64 = dataUrl.includes(',') ? dataUrl.split(',')[1] : '';
+            window.postMessage({
+              type: MESSAGE_TYPES.binaryFetchResponse,
+              requestId,
+              success: true,
+              base64,
+              byteLength: blob.size,
+            }, '*');
+          };
+          reader.onerror = () => {
+            window.postMessage({
+              type: MESSAGE_TYPES.binaryFetchResponse,
+              requestId,
+              success: false,
+              error: 'FileReader failed converting media blob.',
+            }, '*');
+          };
+          reader.readAsDataURL(blob);
         })
         .catch((error) => window.postMessage({
           type: MESSAGE_TYPES.binaryFetchResponse,

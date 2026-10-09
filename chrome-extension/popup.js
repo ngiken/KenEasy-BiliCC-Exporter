@@ -72,8 +72,21 @@ const FALLBACK_TEXT = Object.freeze({
   mediaDoneKicker: 'DOWNLOAD COMPLETE',
   mediaDoneBtn: 'Done & Return',
   mediaStepResolve: 'Resolving streams',
+  mediaStepVideo: 'Downloading video track',
+  mediaStepAudio: 'Downloading audio track',
+  mediaStepRemux: 'Remuxing MP4 locally',
+  mediaStepSave: 'Saving file to disk',
   mediaStepDownload: 'Downloading tracks',
-  mediaStepSave: 'Saving local file',
+  mediaBgAssurance: 'Safe to close popup or switch tabs. Download continues in background with notification on finish.',
+  activeJobRunning: 'Background download in progress',
+  activeJobViewBtn: 'View Progress',
+  cancelButton: 'Cancel',
+  mediaProgressCancelled: 'Download cancelled',
+  metricSpeedLabel: 'Speed',
+  metricSizeLabel: 'Transferred',
+  metricEtaLabel: 'ETA',
+  metricDoneSpeed: 'Done',
+  notificationDownloadDone: 'Download complete: {filename}',
   mediaOptionsFailed: 'Unable to load media download options for this video.',
   mediaDownloadFailed: 'Media download failed.',
   qualityAuto: 'Auto',
@@ -105,6 +118,37 @@ const FALLBACK_TEXT = Object.freeze({
   updateCheckNow: 'Check for updates',
 });
 
+function formatBytes(bytes) {
+  if (!bytes || bytes <= 0) return '0 B';
+  const units = ['B', 'KB', 'MB', 'GB'];
+  let size = bytes;
+  let unitIndex = 0;
+  while (size >= 1024 && unitIndex < units.length - 1) {
+    size /= 1024;
+    unitIndex += 1;
+  }
+  return `${size.toFixed(unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
+}
+
+function formatSpeed(bytesPerSec) {
+  if (!bytesPerSec || bytesPerSec <= 0) return '--';
+  return `${formatBytes(bytesPerSec)}/s`;
+}
+
+function formatEta(seconds) {
+  if (seconds === null || seconds === undefined || seconds < 0) return '--';
+  if (seconds === 0) return '0s';
+  if (seconds < 60) return `~${seconds}s`;
+  if (seconds >= 3600) {
+    const hours = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    return `~${hours}h ${mins}m`;
+  }
+  const mins = Math.floor(seconds / 60);
+  const remSec = seconds % 60;
+  return `~${mins}m ${remSec}s`;
+}
+
 const STATE_IDS = Object.freeze({
   loading: 'stateLoading',
   notbili: 'stateNotBili',
@@ -119,6 +163,7 @@ const STATE_IDS = Object.freeze({
 const MEDIA_MESSAGE_TYPES = Object.freeze({
   resolveMediaOptions: 'RESOLVE_MEDIA_OPTIONS',
   startMediaDownload: 'START_MEDIA_DOWNLOAD',
+  cancelMediaDownload: 'CANCEL_MEDIA_DOWNLOAD',
   mediaDownloadProgress: 'MEDIA_DOWNLOAD_PROGRESS',
   getActiveJobs: 'GET_ACTIVE_JOBS',
 });
@@ -134,6 +179,32 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('mediaDownloadBtn')?.addEventListener('click', downloadMedia);
   document.getElementById('footerUpdateBtn')?.addEventListener('click', () => handleUpdateButtonClick());
   document.getElementById('updateNowBtn')?.addEventListener('click', () => applyLatestUpdate());
+  document.getElementById('activeJobViewBtn')?.addEventListener('click', () => {
+    if (appState.runningJob) {
+      appState.mediaJobId = appState.runningJob.jobId;
+      adaptPipelineStepsToMode(appState.runningJob.request?.modeId);
+      showState('downloading');
+      handleMediaProgress({ jobId: appState.runningJob.jobId, ...appState.runningJob.state });
+    }
+  });
+  document.getElementById('mediaCancelBtn')?.addEventListener('click', async () => {
+    if (appState.mediaJobId) {
+      try {
+        await chrome.runtime.sendMessage({
+          type: MEDIA_MESSAGE_TYPES.cancelMediaDownload,
+          jobId: appState.mediaJobId,
+        });
+      } catch (e) {
+        console.warn('Failed to send cancel message:', e);
+      }
+      appState.mediaJobId = null;
+    }
+    const indicator = document.getElementById('activeJobIndicator');
+    if (indicator) indicator.hidden = true;
+    appState.runningJob = null;
+    showToast(t('mediaProgressCancelled'));
+    showState('ready');
+  });
   document.querySelectorAll('.btn-back').forEach((button) => {
     button.addEventListener('click', () => {
       appState.mediaJobId = null;
@@ -145,6 +216,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     chrome.runtime.onMessage.addListener((message) => {
       if (message?.type === MEDIA_MESSAGE_TYPES.mediaDownloadProgress) {
         handleMediaProgress(message);
+        if (!document.getElementById('stateReady')?.hidden) {
+          refreshActiveJobIndicator();
+        }
       }
     });
   }
@@ -201,6 +275,7 @@ async function initActiveTab() {
         const myJob = jobsRes.data.find(j => j.request?.bvid === video.bvid);
         if (myJob && myJob.state) {
           appState.mediaJobId = myJob.jobId;
+          adaptPipelineStepsToMode(myJob.request?.modeId);
           showState('downloading');
           handleMediaProgress({ jobId: myJob.jobId, ...myJob.state });
           return;
@@ -833,17 +908,31 @@ function fillSelect(select, items, mapItem, preferredValue) {
   }
 }
 
+function adaptPipelineStepsToMode(modeId) {
+  const stepVideo = document.getElementById('mediaStepRow2');
+  const stepRemux = document.getElementById('mediaStepRow4');
+  if (modeId === 'audio_only') {
+    if (stepVideo) stepVideo.style.display = 'none';
+    if (stepRemux) stepRemux.style.display = 'none';
+  } else {
+    if (stepVideo) stepVideo.style.display = '';
+    if (stepRemux) stepRemux.style.display = '';
+  }
+}
+
 async function downloadMedia() {
   if (!appState.video?.bvid) return;
 
   const qualitySelect = document.getElementById('mediaQualitySelect');
   const modeSelect = document.getElementById('mediaModeSelect');
+  const selectedMode = modeSelect?.value || 'video_with_audio';
   const jobId = `media_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
   appState.mediaJobId = jobId;
 
+  adaptPipelineStepsToMode(selectedMode);
   showState('downloading');
   resetMediaProgress();
-  updateMediaProgress(5, t('mediaProgressStart'));
+  updateMediaProgress(4, t('mediaProgressStart'));
   setMediaStep(1, t('mediaStepResolve'), 'active');
 
   try {
@@ -870,73 +959,172 @@ async function downloadMedia() {
       cid: video.cid || null,
       title: video.title || t('unknownTitle'),
       tabId: tab?.id || null,
-      modeId: modeSelect?.value || 'video_with_audio',
+      modeId: selectedMode,
       qualityId: qualitySelect?.value || 'auto',
     });
 
     if (!response) throw new Error(t('backgroundNoResponse'));
-    if (!response.success) throw new Error(response.error || t('mediaDownloadFailed'));
+    if (!response.success) {
+      if (response.error?.includes('cancelled')) {
+        showToast(t('mediaProgressCancelled'));
+        showState('ready');
+        return;
+      }
+      throw new Error(response.error || t('mediaDownloadFailed'));
+    }
 
-    setMediaDoneState(response.data?.filename);
+    setMediaDoneState(response.data?.filename, 0);
   } catch (error) {
+    if (error.message?.includes('cancelled')) {
+      showToast(t('mediaProgressCancelled'));
+      showState('ready');
+      return;
+    }
     showError(error);
   } finally {
     appState.mediaJobId = null;
   }
 }
 
-function setMediaDoneState(filename) {
+function setMediaDoneState(filename, totalBytes = 0) {
   const spinner = document.getElementById('mediaSpinner');
   const doneVisual = document.getElementById('mediaDoneVisual');
   const kicker = document.getElementById('downloadingKicker');
+  const pulseDot = document.getElementById('mediaPulseDot');
   const btnLabel = document.getElementById('mediaBackBtnLabel');
+  const cancelBtn = document.getElementById('mediaCancelBtn');
+  const backBtn = document.getElementById('mediaBackBtn');
+  const savedPill = document.getElementById('mediaSavedFilePill');
+  const savedName = document.getElementById('mediaSavedFileName');
 
   if (spinner) spinner.hidden = true;
   if (doneVisual) doneVisual.hidden = false;
+  if (pulseDot) pulseDot.style.display = 'none';
+  if (cancelBtn) cancelBtn.style.display = 'none';
   if (kicker) kicker.textContent = t('mediaDoneKicker');
   if (btnLabel) btnLabel.textContent = t('mediaDoneBtn');
+  if (backBtn) {
+    backBtn.classList.remove('btn-secondary');
+    backBtn.classList.add('btn-primary');
+  }
+
+  setText('mediaMetricSpeed', t('metricDoneSpeed') || '✓');
+  setText('mediaMetricSize', totalBytes ? formatBytes(totalBytes) : '100%');
+  setText('mediaMetricEta', '0s');
 
   updateMediaProgress(100, t('mediaProgressDone'));
   setMediaStep(1, t('mediaStepResolve'), 'done');
-  setMediaStep(2, t('mediaStepDownload'), 'done');
-  setMediaStep(3, t('mediaStepSave'), 'done');
+  setMediaStep(2, t('mediaStepVideo'), 'done');
+  setMediaStep(3, t('mediaStepAudio'), 'done');
+  setMediaStep(4, t('mediaStepRemux'), 'done');
+  setMediaStep(5, t('mediaStepSave'), 'done');
+
+  if (savedPill && savedName && filename) {
+    savedName.textContent = filename;
+    savedPill.hidden = false;
+  }
 
   if (filename) {
     const info = document.getElementById('mediaProgressInfo');
     if (info) info.textContent = `${t('mediaProgressDone')} (100%)\n${filename}`;
     setText('mediaHint', `${t('mediaProgressDone')}: ${filename}`);
   }
+
+  const activeIndicator = document.getElementById('activeJobIndicator');
+  if (activeIndicator) activeIndicator.hidden = true;
+  appState.runningJob = null;
 }
 
 function handleMediaProgress(message) {
   if (!message || (appState.mediaJobId && message.jobId && message.jobId !== appState.mediaJobId)) return;
 
+  if (message.phase === 'cancelled') {
+    appState.mediaJobId = null;
+    showToast(t('mediaProgressCancelled'));
+    showState('ready');
+    return;
+  }
+
   if (message.phase === 'done' || message.percent === 100) {
-    setMediaDoneState(message.filename);
+    setMediaDoneState(message.filename, message.totalBytes || message.loadedBytes);
     return;
   }
 
   const spinner = document.getElementById('mediaSpinner');
   const doneVisual = document.getElementById('mediaDoneVisual');
   const kicker = document.getElementById('downloadingKicker');
+  const pulseDot = document.getElementById('mediaPulseDot');
   const btnLabel = document.getElementById('mediaBackBtnLabel');
+  const cancelBtn = document.getElementById('mediaCancelBtn');
+
   if (spinner) spinner.hidden = false;
   if (doneVisual) doneVisual.hidden = true;
+  if (pulseDot) pulseDot.style.display = 'inline-block';
+  if (cancelBtn) cancelBtn.style.display = 'inline-block';
   if (kicker) kicker.textContent = t('downloadingKicker');
   if (btnLabel) btnLabel.textContent = t('backButton');
 
   const label = message.messageKey ? t(message.messageKey) : t('mediaProgressStart');
   updateMediaProgress(message.percent || 0, label);
 
-  if (message.phase === 'resolve' || message.phase === 'select') {
+  // Live metrics display
+  const speedEl = document.getElementById('mediaMetricSpeed');
+  const sizeEl = document.getElementById('mediaMetricSize');
+  const etaEl = document.getElementById('mediaMetricEta');
+
+  if (speedEl) {
+    speedEl.textContent = formatSpeed(message.speedBps);
+  }
+
+  if (sizeEl) {
+    if (message.indeterminate) {
+      sizeEl.textContent = `${formatBytes(message.loadedBytes)}...`;
+    } else if (message.totalBytes && message.totalBytes > 0) {
+      sizeEl.textContent = `${formatBytes(message.loadedBytes)} / ${formatBytes(message.totalBytes)}`;
+    } else if (message.loadedBytes) {
+      sizeEl.textContent = formatBytes(message.loadedBytes);
+    } else {
+      sizeEl.textContent = '--';
+    }
+  }
+
+  if (etaEl) {
+    etaEl.textContent = formatEta(message.etaSeconds);
+  }
+
+  // 5-Stage Transparent Pipeline:
+  // 1: Resolve, 2: Video, 3: Audio, 4: Remux, 5: Save
+  const phase = message.phase;
+  if (phase === 'resolve' || phase === 'select') {
     setMediaStep(1, t('mediaStepResolve'), 'active');
-  } else if (message.phase === 'video' || message.phase === 'audio' || message.phase === 'remux') {
+    setMediaStep(2, t('mediaStepVideo'), '');
+    setMediaStep(3, t('mediaStepAudio'), '');
+    setMediaStep(4, t('mediaStepRemux'), '');
+    setMediaStep(5, t('mediaStepSave'), '');
+  } else if (phase === 'video') {
     setMediaStep(1, t('mediaStepResolve'), 'done');
-    setMediaStep(2, t('mediaStepDownload'), 'active');
-  } else if (message.phase === 'save') {
+    setMediaStep(2, t('mediaStepVideo'), 'active');
+    setMediaStep(3, t('mediaStepAudio'), '');
+    setMediaStep(4, t('mediaStepRemux'), '');
+    setMediaStep(5, t('mediaStepSave'), '');
+  } else if (phase === 'audio') {
     setMediaStep(1, t('mediaStepResolve'), 'done');
-    setMediaStep(2, t('mediaStepDownload'), 'done');
-    setMediaStep(3, t('mediaStepSave'), 'active');
+    setMediaStep(2, t('mediaStepVideo'), 'done');
+    setMediaStep(3, t('mediaStepAudio'), 'active');
+    setMediaStep(4, t('mediaStepRemux'), '');
+    setMediaStep(5, t('mediaStepSave'), '');
+  } else if (phase === 'remux') {
+    setMediaStep(1, t('mediaStepResolve'), 'done');
+    setMediaStep(2, t('mediaStepVideo'), 'done');
+    setMediaStep(3, t('mediaStepAudio'), 'done');
+    setMediaStep(4, t('mediaStepRemux'), 'active');
+    setMediaStep(5, t('mediaStepSave'), '');
+  } else if (phase === 'save') {
+    setMediaStep(1, t('mediaStepResolve'), 'done');
+    setMediaStep(2, t('mediaStepVideo'), 'done');
+    setMediaStep(3, t('mediaStepAudio'), 'done');
+    setMediaStep(4, t('mediaStepRemux'), 'done');
+    setMediaStep(5, t('mediaStepSave'), 'active');
   }
 }
 
@@ -944,17 +1132,56 @@ function resetMediaProgress() {
   const spinner = document.getElementById('mediaSpinner');
   const doneVisual = document.getElementById('mediaDoneVisual');
   const kicker = document.getElementById('downloadingKicker');
+  const pulseDot = document.getElementById('mediaPulseDot');
   const btnLabel = document.getElementById('mediaBackBtnLabel');
+  const cancelBtn = document.getElementById('mediaCancelBtn');
+  const backBtn = document.getElementById('mediaBackBtn');
+  const savedPill = document.getElementById('mediaSavedFilePill');
 
   if (spinner) spinner.hidden = false;
   if (doneVisual) doneVisual.hidden = true;
+  if (pulseDot) pulseDot.style.display = 'inline-block';
+  if (cancelBtn) cancelBtn.style.display = 'inline-block';
   if (kicker) kicker.textContent = t('downloadingKicker');
   if (btnLabel) btnLabel.textContent = t('backButton');
+  if (backBtn) {
+    backBtn.classList.remove('btn-primary');
+    backBtn.classList.add('btn-secondary');
+  }
+  if (savedPill) savedPill.hidden = true;
+
+  setText('mediaMetricSpeed', '--');
+  setText('mediaMetricSize', '--');
+  setText('mediaMetricEta', '--');
 
   updateMediaProgress(0, t('mediaProgressStart'));
   setMediaStep(1, t('mediaStepResolve'), 'active');
-  setMediaStep(2, t('mediaStepDownload'), '');
-  setMediaStep(3, t('mediaStepSave'), '');
+  setMediaStep(2, t('mediaStepVideo'), '');
+  setMediaStep(3, t('mediaStepAudio'), '');
+  setMediaStep(4, t('mediaStepRemux'), '');
+  setMediaStep(5, t('mediaStepSave'), '');
+}
+
+async function refreshActiveJobIndicator() {
+  const indicator = document.getElementById('activeJobIndicator');
+  const jobText = document.getElementById('activeJobText');
+  if (!indicator || !jobText) return;
+  try {
+    const res = await chrome.runtime.sendMessage({ type: MEDIA_MESSAGE_TYPES.getActiveJobs });
+    if (res?.success && Array.isArray(res.data) && res.data.length > 0) {
+      const job = res.data[0];
+      appState.runningJob = job;
+      const percent = job.state?.percent || 0;
+      const title = job.request?.title || '';
+      jobText.textContent = `${t('activeJobRunning')}: ${percent}% ${title ? `· ${title}` : ''}`;
+      indicator.hidden = false;
+      return;
+    }
+  } catch (e) {
+    // Ignore when background not responsive
+  }
+  indicator.hidden = true;
+  appState.runningJob = null;
 }
 
 function updateMediaProgress(percent, textValue) {
@@ -989,6 +1216,10 @@ function showState(state) {
 
   const target = document.getElementById(STATE_IDS[state]);
   if (target) target.hidden = false;
+
+  if (state === 'ready') {
+    refreshActiveJobIndicator();
+  }
 }
 
 function setStep(number, text, status = '') {
@@ -1087,8 +1318,16 @@ function applyStaticText() {
   setText('downloadingKicker', t('downloadingKicker'));
   setText('mediaProgressInfo', `${t('mediaProgressStart')} (0%)`);
   setText('mediaStep1', t('mediaStepResolve'));
-  setText('mediaStep2', t('mediaStepDownload'));
-  setText('mediaStep3', t('mediaStepSave'));
+  setText('mediaStep2', t('mediaStepVideo'));
+  setText('mediaStep3', t('mediaStepAudio'));
+  setText('mediaStep4', t('mediaStepRemux'));
+  setText('mediaStep5', t('mediaStepSave'));
+  setText('mediaMetricSpeedLabel', t('metricSpeedLabel'));
+  setText('mediaMetricSizeLabel', t('metricSizeLabel'));
+  setText('mediaMetricEtaLabel', t('metricEtaLabel'));
+  setText('mediaBgAssuranceText', t('mediaBgAssurance'));
+  setText('mediaCancelBtnLabel', t('cancelButton'));
+  setText('activeJobViewBtn', t('activeJobViewBtn'));
   setText('progressInfo', `${t('progressStart')} (0%)`);
   setText('step1', t('progressVideo'));
   setText('step2', t('progressTracks'));
@@ -1125,7 +1364,7 @@ function getExtensionVersion() {
   if (typeof chrome !== 'undefined' && chrome.runtime?.getManifest) {
     return chrome.runtime.getManifest().version;
   }
-  return '2.0.4';
+  return '2.1.0';
 }
 
 function t(key, substitutions = []) {
