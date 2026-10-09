@@ -389,5 +389,8 @@
   },
   "langAuto": {
     "message": "自動"
+  },
+  "starPromptNeverToast": {
+    "message": "已記住你的偏好，將不再提示。"
   }
 }

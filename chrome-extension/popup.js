@@ -83,6 +83,7 @@ async function dismissPermanentlyStarPrompt() {
     await setStorageItem(USAGE_STORAGE_KEYS.starStatus, 'dismissed_permanent');
   } catch (_) {}
   hideStarPromptModal();
+  showStatusToast(t('starPromptNeverToast'), 'info');
 }
 
 function showStarPromptModal() {
@@ -90,6 +91,9 @@ function showStarPromptModal() {
   if (modal) {
     modal.hidden = false;
     modal.setAttribute('aria-hidden', 'false');
+    setTimeout(() => {
+      document.getElementById('starPromptActionBtn')?.focus();
+    }, 60);
   }
 }
 
@@ -142,6 +146,15 @@ async function applyActiveLanguage(selectedLang) {
   const langSelect = document.getElementById('langSelect');
   if (langSelect && selectedLang) {
     langSelect.value = selectedLang;
+  }
+
+  const helpLink = document.getElementById('footerHelp');
+  if (helpLink) {
+    helpLink.href = `help.html?lang=${effectiveLang}`;
+  }
+
+  if (appState.subtitles?.tracks?.length) {
+    renderTracks(appState.subtitles.tracks);
   }
 
   if (appState.video) {
@@ -247,6 +260,7 @@ const FALLBACK_TEXT = Object.freeze({
   starPromptLaterLabel: 'Maybe later',
   starPromptThankToast: 'Thank you so much for your support! ❤️',
   starPromptNeverLabel: "Don't show again",
+  starPromptNeverToast: 'Preference saved. You will not see this prompt again.',
   langSelectLabel: 'Language',
   langAuto: 'Auto',
   mediaOptionsFailed: 'Unable to load media download options for this video.',

@@ -389,5 +389,8 @@
   },
   "langAuto": {
     "message": "Auto"
+  },
+  "starPromptNeverToast": {
+    "message": "Preference saved. You will not see this prompt again."
   }
 }

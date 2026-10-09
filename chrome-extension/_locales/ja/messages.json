@@ -389,5 +389,8 @@
   },
   "langAuto": {
     "message": "自動"
+  },
+  "starPromptNeverToast": {
+    "message": "設定を保存しました。今後この通知は表示されません。"
   }
 }
