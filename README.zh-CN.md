@@ -8,11 +8,11 @@
   </p>
 
   <p>
-    中文
-    ·
-    <a href="README.md">English</a>
+    简体中文 · <a href="README.md">English</a> · 繁體中文 · 日本語 · 한국어
     ·
     <a href="CHANGELOG.md">更新记录</a>
+    ·
+    <a href="docs/CHROME_WEB_STORE.md">商店文案</a>
   </p>
 
   <p>

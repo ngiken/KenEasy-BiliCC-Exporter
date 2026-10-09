@@ -30,7 +30,16 @@
       </div>
 
       <div class="header-actions">
-        <span class="format-pill" aria-label="TXT SRT MP4">TXT / SRT / MP4</span>
+        <div class="lang-picker-wrap">
+          <select id="langSelect" class="lang-select" aria-label="Language">
+            <option value="auto">🌐 Auto</option>
+            <option value="zh_CN">简体中文</option>
+            <option value="zh_TW">繁體中文</option>
+            <option value="en">English</option>
+            <option value="ja">日本語</option>
+            <option value="ko">한국어</option>
+          </select>
+        </div>
         <button type="button" id="themeToggle" data-theme-toggle class="icon-control" aria-label="Switch appearance" aria-pressed="false">
           <svg class="theme-icon theme-icon-sun" viewBox="0 0 24 24" aria-hidden="true">
             <circle cx="12" cy="12" r="3.5"></circle>
@@ -264,9 +273,15 @@
             <span class="button-icon">★</span>
             <span id="starPromptActionLabel">Star on GitHub ★</span>
           </button>
-          <button type="button" class="button btn-secondary btn-later" id="starPromptLaterBtn">
-            <span id="starPromptLaterLabel">Maybe later</span>
-          </button>
+          <div class="star-prompt-subactions">
+            <button type="button" class="btn-subaction btn-later" id="starPromptLaterBtn">
+              <span id="starPromptLaterLabel">Maybe later</span>
+            </button>
+            <span class="subaction-divider" aria-hidden="true">·</span>
+            <button type="button" class="btn-subaction btn-never" id="starPromptNeverBtn">
+              <span id="starPromptNeverLabel">Don't show again</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>

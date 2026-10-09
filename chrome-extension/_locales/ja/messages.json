@@ -1,0 +1,393 @@
+{
+  "extensionName": {
+    "message": "KenEasy BiliCC Exporter"
+  },
+  "extensionDescription": {
+    "message": "BilibiliのCC字幕エクスポートおよび動画・音声のダウンロードツール。"
+  },
+  "headerSubtitle": {
+    "message": "Bilibili CC字幕・動画ダウンローダー"
+  },
+  "loading": {
+    "message": "現在の動画情報を取得中..."
+  },
+  "notBili": {
+    "message": "KenEasy BiliCC Exporterを使用する前に、bilibili.comの動画ページを開いてください。"
+  },
+  "unknownTitle": {
+    "message": "無題の動画"
+  },
+  "unknownDuration": {
+    "message": "--:--"
+  },
+  "fetchButton": {
+    "message": "字幕を抽出"
+  },
+  "progressStart": {
+    "message": "字幕抽出の準備中"
+  },
+  "progressVideo": {
+    "message": "動画情報を読み込み中"
+  },
+  "progressTracks": {
+    "message": "字幕トラックを取得中"
+  },
+  "progressDone": {
+    "message": "字幕の準備が完了しました"
+  },
+  "videoInfoDone": {
+    "message": "動画情報の取得完了"
+  },
+  "tracksFound": {
+    "message": "$COUNT$ 件の字幕トラックが見つかりました",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "subtitleCount": {
+    "message": "$COUNT$ 件の字幕",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "noSubtitle": {
+    "message": "この動画にはダウンロード可能なCC字幕がまだありません。ページ上に字幕が表示されているか確認するか、Bilibiliにログインしてお試しください。"
+  },
+  "loginRequired": {
+    "message": "この動画の字幕を取得するにはBilibiliへのログインが必要です。現在のブラウザでログインしてから再試行してください。"
+  },
+  "unknownLanguage": {
+    "message": "字幕"
+  },
+  "errorPrefix": {
+    "message": "失敗: "
+  },
+  "downloaded": {
+    "message": "保存完了"
+  },
+  "previewLabel": {
+    "message": "字幕プレビュー"
+  },
+  "backButton": {
+    "message": "戻る"
+  },
+  "footerFormats": {
+    "message": "TXT / SRT"
+  },
+  "footerGithub": {
+    "message": "GitHub"
+  },
+  "footerStar": {
+    "message": "Starで応援 ★"
+  },
+  "currentPageNotVideo": {
+    "message": "現在のページはBilibiliの動画再生ページではありません。"
+  },
+  "backgroundNoResponse": {
+    "message": "バックグラウンド処理から結果が返されませんでした。拡張機能を再度開いてお試しください。"
+  },
+  "subtitleApiFailed": {
+    "message": "字幕APIへのリクエストに失敗しました。"
+  },
+  "subtitleFileFailed": {
+    "message": "字幕ファイルのダウンロードに失敗しました: HTTP $STATUS$",
+    "placeholders": {
+      "status": {
+        "content": "$1"
+      }
+    }
+  },
+  "loadingKicker": {
+    "message": "動画に接続中"
+  },
+  "notBiliKicker": {
+    "message": "準備完了"
+  },
+  "notBiliTitle": {
+    "message": "Bilibili動画を開く"
+  },
+  "currentVideoLabel": {
+    "message": "現在の動画"
+  },
+  "extractingKicker": {
+    "message": "字幕を準備中"
+  },
+  "availableTracksLabel": {
+    "message": "利用可能なトラック"
+  },
+  "checkedVideoLabel": {
+    "message": "確認済み動画"
+  },
+  "noSubTitle": {
+    "message": "ダウンロード可能な字幕がありません"
+  },
+  "errorTitle": {
+    "message": "処理が完了しませんでした"
+  },
+  "themeToLight": {
+    "message": "ライトテーマに切り替え"
+  },
+  "themeToDark": {
+    "message": "ダークテーマに切り替え"
+  },
+  "helpLink": {
+    "message": "ヘルプと使い方"
+  },
+  "mediaDownloadLabel": {
+    "message": "メディアダウンロード"
+  },
+  "mediaQualityLabel": {
+    "message": "画質"
+  },
+  "mediaModeLabel": {
+    "message": "モード"
+  },
+  "mediaHint": {
+    "message": "動画と音声をまとめてローカルに保存、または音声のみ保存できます。"
+  },
+  "mediaDownloadButton": {
+    "message": "メディアをダウンロード"
+  },
+  "downloadingKicker": {
+    "message": "メディアをダウンロード中"
+  },
+  "mediaProgressStart": {
+    "message": "ダウンロードの準備中"
+  },
+  "mediaProgressResolve": {
+    "message": "再生ストリームを解析中"
+  },
+  "mediaProgressSelect": {
+    "message": "画質とトラックを選択中"
+  },
+  "mediaProgressVideo": {
+    "message": "動画ストリームをダウンロード中"
+  },
+  "mediaProgressAudio": {
+    "message": "音声ストリームをダウンロード中"
+  },
+  "mediaProgressRemux": {
+    "message": "動画と音声を結合中"
+  },
+  "mediaProgressSave": {
+    "message": "ファイルを保存中"
+  },
+  "mediaProgressDone": {
+    "message": "ダウンロード完了"
+  },
+  "mediaDoneKicker": {
+    "message": "ダウンロード完了"
+  },
+  "mediaDoneBtn": {
+    "message": "完了して戻る"
+  },
+  "mediaStepResolve": {
+    "message": "ストリームを解析"
+  },
+  "mediaStepDownload": {
+    "message": "トラックをダウンロード"
+  },
+  "mediaStepSave": {
+    "message": "ローカルに保存"
+  },
+  "mediaOptionsFailed": {
+    "message": "この動画のダウンロードオプションを取得できませんでした。"
+  },
+  "mediaDownloadFailed": {
+    "message": "メディアのダウンロードに失敗しました。"
+  },
+  "qualityAuto": {
+    "message": "自動"
+  },
+  "quality8k": {
+    "message": "8K"
+  },
+  "qualityDolbyVision": {
+    "message": "Dolby Vision"
+  },
+  "qualityHdr": {
+    "message": "HDR"
+  },
+  "quality4k": {
+    "message": "4K"
+  },
+  "quality1080p60": {
+    "message": "1080P60"
+  },
+  "quality1080pPlus": {
+    "message": "1080P+"
+  },
+  "quality1080p": {
+    "message": "1080P"
+  },
+  "quality720p60": {
+    "message": "720P60"
+  },
+  "quality720p": {
+    "message": "720P"
+  },
+  "quality480p": {
+    "message": "480P"
+  },
+  "quality360p": {
+    "message": "360P"
+  },
+  "downloadVideoWithAudio": {
+    "message": "動画 + 音声"
+  },
+  "downloadAudioOnly": {
+    "message": "音声のみ"
+  },
+  "downloadVideoOnly": {
+    "message": "動画のみ"
+  },
+  "updateButton": {
+    "message": "更新"
+  },
+  "updateChecking": {
+    "message": "アップデートを確認中..."
+  },
+  "updateAvailable": {
+    "message": "新バージョンが利用可能です: v$VERSION$",
+    "placeholders": {
+      "version": {
+        "content": "$1"
+      }
+    }
+  },
+  "updateLatest": {
+    "message": "既に最新バージョンです（v$VERSION$）",
+    "placeholders": {
+      "version": {
+        "content": "$1"
+      }
+    }
+  },
+  "updateDownloading": {
+    "message": "最新パッケージをダウンロード中..."
+  },
+  "updateDownloaded": {
+    "message": "最新パッケージがダウンロードされました。手順に従って再読み込みしてください。"
+  },
+  "updateFailed": {
+    "message": "アップデート確認に失敗しました。"
+  },
+  "updateApplyFailed": {
+    "message": "アップデートのダウンロードを開始できませんでした。"
+  },
+  "updateBannerTitle": {
+    "message": "新バージョンが準備完了"
+  },
+  "updateBannerBody": {
+    "message": "v$VERSION$ が利用可能です。ワンクリックでダウンロードしインストール手順を表示します。",
+    "placeholders": {
+      "version": {
+        "content": "$1"
+      }
+    }
+  },
+  "updateNow": {
+    "message": "今すぐ更新"
+  },
+  "updateCheckNow": {
+    "message": "更新を確認"
+  },
+  "copyText": {
+    "message": "コピー"
+  },
+  "copyTextTitle": {
+    "message": "プレーンテキスト字幕をクリップボードにコピー"
+  },
+  "copiedText": {
+    "message": "コピー完了✓"
+  },
+  "copiedSuccessToast": {
+    "message": "字幕の全文をクリップボードにコピーしました"
+  },
+  "copyFailedToast": {
+    "message": "クリップボードへのコピーに失敗しました"
+  },
+  "metricSpeedLabel": {
+    "message": "速度"
+  },
+  "metricSizeLabel": {
+    "message": "転送サイズ"
+  },
+  "metricEtaLabel": {
+    "message": "残り予想時間"
+  },
+  "metricDoneSpeed": {
+    "message": "完了"
+  },
+  "mediaStepVideo": {
+    "message": "動画ストリームを取得"
+  },
+  "mediaStepAudio": {
+    "message": "音声ストリームを取得"
+  },
+  "mediaStepRemux": {
+    "message": "ローカルでMP4を結合"
+  },
+  "mediaBgAssurance": {
+    "message": "バックグラウンド安心ダウンロード：ポップアップを閉じたりタブを切り替えても問題ありません。完了時にデスクトップ通知でお知らせします。"
+  },
+  "activeJobRunning": {
+    "message": "バックグラウンドダウンロード中"
+  },
+  "activeJobViewBtn": {
+    "message": "進捗を確認"
+  },
+  "cancelButton": {
+    "message": "ダウンロードを中止"
+  },
+  "mediaProgressCancelled": {
+    "message": "ダウンロードを中止しました"
+  },
+  "notificationDownloadDone": {
+    "message": "動画のダウンロードが完了しました！保存先: $FILENAME$",
+    "placeholders": {
+      "filename": {
+        "content": "$1"
+      }
+    }
+  },
+  "notificationDownloadFailed": {
+    "message": "ダウンロードに失敗しました: $ERROR$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "starPromptKicker": {
+    "message": "マイルストーン達成"
+  },
+  "starPromptTitle": {
+    "message": "KenEasyのご利用が10回に達しました！"
+  },
+  "starPromptBody": {
+    "message": "KenEasyがお役に立てて嬉しいです！もし気に入っていただけましたら、GitHubでStar★を付けて応援していただけませんか？継続開発の大きな励みになります！"
+  },
+  "starPromptActionLabel": {
+    "message": "GitHubでStarを付ける ★"
+  },
+  "starPromptLaterLabel": {
+    "message": "後で"
+  },
+  "starPromptThankToast": {
+    "message": "温かいご支援ありがとうございます！❤️"
+  },
+  "starPromptNeverLabel": {
+    "message": "今後表示しない"
+  },
+  "langSelectLabel": {
+    "message": "表示言語"
+  },
+  "langAuto": {
+    "message": "自動"
+  }
+}

@@ -185,18 +185,41 @@ body {
   gap: 6px;
 }
 
-.format-pill {
+.lang-picker-wrap {
+  position: relative;
   display: inline-flex;
-  height: 28px;
   align-items: center;
-  padding: 0 8px;
+}
+
+.lang-select {
+  height: 28px;
+  padding: 0 18px 0 8px;
   border: 1px solid var(--line);
   border-radius: 999px;
-  background: var(--surface-muted);
+  background-color: var(--surface-muted);
   color: var(--text-secondary);
-  font-size: 9px;
-  font-weight: 760;
-  letter-spacing: 0.035em;
+  font-family: inherit;
+  font-size: 10.5px;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  outline: none;
+  transition: all 180ms ease;
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url('data:image/svg+xml;utf8,<svg fill="%238e8e93" height="12" viewBox="0 0 24 24" width="12" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 5px center;
+}
+
+.lang-select:hover {
+  background-color: var(--surface-hover);
+  color: var(--text);
+  border-color: var(--line-strong);
+}
+
+:root[data-theme="dark"] .lang-select {
+  background-image: url('data:image/svg+xml;utf8,<svg fill="%23a1a1a6" height="12" viewBox="0 0 24 24" width="12" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
 }
 
 .icon-control {
@@ -1558,15 +1581,38 @@ select.field-control option {
   box-shadow: 0 6px 16px -2px rgba(217, 119, 6, 0.6);
 }
 
-.btn-later {
+.star-prompt-subactions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.btn-subaction {
   font-size: 11.5px !important;
-  padding: 7px 12px !important;
+  padding: 6px 10px !important;
   color: var(--text-tertiary) !important;
   background: transparent !important;
   border: 0 !important;
+  border-radius: 6px !important;
+  cursor: pointer;
+  transition: color 150ms ease, background 150ms ease;
+  white-space: nowrap;
 }
 
-.btn-later:hover {
+.btn-subaction:hover {
   color: var(--text) !important;
   background: var(--surface-muted) !important;
+}
+
+.btn-never:hover {
+  color: var(--danger, #ef4444) !important;
+}
+
+.subaction-divider {
+  color: var(--text-tertiary);
+  font-size: 11px;
+  opacity: 0.5;
+  user-select: none;
 }

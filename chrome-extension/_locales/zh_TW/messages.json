@@ -3,43 +3,43 @@
     "message": "KenEasy BiliCC Exporter"
   },
   "extensionDescription": {
-    "message": "导出 Bilibili 视频的 CC 字幕，并支持下载当前视频与音频。"
+    "message": "匯出 Bilibili CC 字幕並下載高畫質影片與音訊。"
   },
   "headerSubtitle": {
-    "message": "B 站字幕与视频下载器"
+    "message": "B 站字幕與影音下載器"
   },
   "loading": {
-    "message": "正在读取当前视频..."
+    "message": "正在讀取目前影片..."
   },
   "notBili": {
-    "message": "使用 KenEasy BiliCC Exporter 前，请先打开 bilibili.com 视频播放页。"
+    "message": "使用 KenEasy BiliCC Exporter 前，請先開啟 bilibili.com 影片播放頁面。"
   },
   "unknownTitle": {
-    "message": "未命名视频"
+    "message": "未命名影片"
   },
   "unknownDuration": {
     "message": "--:--"
   },
   "fetchButton": {
-    "message": "提取字幕"
+    "message": "擷取字幕"
   },
   "progressStart": {
-    "message": "正在准备字幕提取"
+    "message": "正在準備擷取字幕"
   },
   "progressVideo": {
-    "message": "正在读取视频信息"
+    "message": "正在讀取影片資訊"
   },
   "progressTracks": {
-    "message": "正在获取字幕列表"
+    "message": "正在取得字幕列表"
   },
   "progressDone": {
-    "message": "字幕准备完成"
+    "message": "字幕已就緒"
   },
   "videoInfoDone": {
-    "message": "已读取视频信息"
+    "message": "已讀取影片資訊"
   },
   "tracksFound": {
-    "message": "找到 $COUNT$ 个字幕轨",
+    "message": "找到 $COUNT$ 個字幕軌",
     "placeholders": {
       "count": {
         "content": "$1"
@@ -47,7 +47,7 @@
     }
   },
   "subtitleCount": {
-    "message": "$COUNT$ 条字幕",
+    "message": "$COUNT$ 條字幕",
     "placeholders": {
       "count": {
         "content": "$1"
@@ -55,22 +55,22 @@
     }
   },
   "noSubtitle": {
-    "message": "这个视频暂时没有可下载的 CC 字幕。请确认播放页是否显示字幕，或登录 B 站后再试。"
+    "message": "此影片目前沒有可下載的 CC 字幕。請確認頁面上是否顯示字幕，或登入 B 站後重試。"
   },
   "loginRequired": {
-    "message": "获取此视频字幕需要登录 B 站。请在当前浏览器登录后重试。"
+    "message": "取得此影片字幕需要登入 B 站帳號。請在目前瀏覽器中登入後重試。"
   },
   "unknownLanguage": {
     "message": "字幕"
   },
   "errorPrefix": {
-    "message": "处理失败: "
+    "message": "處理失敗: "
   },
   "downloaded": {
-    "message": "已保存"
+    "message": "已儲存"
   },
   "previewLabel": {
-    "message": "字幕预览"
+    "message": "字幕預覽"
   },
   "backButton": {
     "message": "返回"
@@ -82,19 +82,19 @@
     "message": "GitHub"
   },
   "footerStar": {
-    "message": "欢迎 Star ★"
+    "message": "歡迎 Star ★"
   },
   "currentPageNotVideo": {
-    "message": "当前页面不是 Bilibili 视频播放页。"
+    "message": "目前頁面不是 Bilibili 影片播放頁面。"
   },
   "backgroundNoResponse": {
-    "message": "后台服务未返回结果，请重新打开扩展重试。"
+    "message": "背景服務未傳回結果，請重新開啟擴充功能重試。"
   },
   "subtitleApiFailed": {
-    "message": "字幕接口请求失败。"
+    "message": "字幕介面請求失敗。"
   },
   "subtitleFileFailed": {
-    "message": "字幕文件下载失败: HTTP $STATUS$",
+    "message": "字幕檔案下載失敗: HTTP $STATUS$",
     "placeholders": {
       "status": {
         "content": "$1"
@@ -102,112 +102,112 @@
     }
   },
   "loadingKicker": {
-    "message": "连接视频中"
+    "message": "連線影片中"
   },
   "notBiliKicker": {
-    "message": "随时待命"
+    "message": "隨時待命"
   },
   "notBiliTitle": {
-    "message": "打开一个 Bilibili 视频"
+    "message": "開啟一個 Bilibili 影片"
   },
   "currentVideoLabel": {
-    "message": "当前视频"
+    "message": "目前影片"
   },
   "extractingKicker": {
-    "message": "正在准备字幕"
+    "message": "正在準備字幕"
   },
   "availableTracksLabel": {
     "message": "可用字幕列表"
   },
   "checkedVideoLabel": {
-    "message": "已检查视频"
+    "message": "已檢查影片"
   },
   "noSubTitle": {
-    "message": "暂时没有可下载字幕"
+    "message": "暫時沒有可下載字幕"
   },
   "errorTitle": {
-    "message": "没有顺利完成"
+    "message": "未能順利完成"
   },
   "themeToLight": {
-    "message": "切换到浅色外观"
+    "message": "切換至淺色外觀"
   },
   "themeToDark": {
-    "message": "切换到深色外观"
+    "message": "切換至深色外觀"
   },
   "helpLink": {
-    "message": "使用帮助"
+    "message": "使用說明"
   },
   "mediaDownloadLabel": {
-    "message": "视频下载"
+    "message": "影音下載"
   },
   "mediaQualityLabel": {
-    "message": "清晰度"
+    "message": "畫質"
   },
   "mediaModeLabel": {
     "message": "模式"
   },
   "mediaHint": {
-    "message": "可将当前视频连同音频一并下载到本地，也可只下载音频。"
+    "message": "可將目前影片連同音訊一併下載至本機，亦可僅下載音訊。"
   },
   "mediaDownloadButton": {
-    "message": "下载媒体"
+    "message": "下載影音"
   },
   "downloadingKicker": {
-    "message": "正在下载媒体"
+    "message": "正在下載影音"
   },
   "mediaProgressStart": {
-    "message": "正在准备媒体下载"
+    "message": "正在準備影音下載"
   },
   "mediaProgressResolve": {
-    "message": "正在解析可播放流"
+    "message": "正在解析串流"
   },
   "mediaProgressSelect": {
-    "message": "正在选择清晰度与音视频轨"
+    "message": "正在選擇畫質與音視頻軌"
   },
   "mediaProgressVideo": {
-    "message": "正在下载视频轨"
+    "message": "正在下載視訊軌"
   },
   "mediaProgressAudio": {
-    "message": "正在下载音频轨"
+    "message": "正在下載音訊軌"
   },
   "mediaProgressRemux": {
-    "message": "正在合并视频与音频"
+    "message": "正在合併視訊與音訊"
   },
   "mediaProgressSave": {
-    "message": "正在保存到本地"
+    "message": "正在儲存至本機"
   },
   "mediaProgressDone": {
-    "message": "已下载完毕"
+    "message": "已下載完畢"
   },
   "mediaDoneKicker": {
-    "message": "下载完成"
+    "message": "下載完成"
   },
   "mediaDoneBtn": {
-    "message": "完成并返回"
+    "message": "完成並返回"
   },
   "mediaStepResolve": {
-    "message": "解析媒体流"
+    "message": "解析串流"
   },
   "mediaStepDownload": {
-    "message": "下载音视频轨"
+    "message": "下載音視頻軌"
   },
   "mediaStepSave": {
-    "message": "落盘保存文件"
+    "message": "儲存檔案至本機"
   },
   "mediaOptionsFailed": {
-    "message": "无法加载此视频的下载选项。"
+    "message": "無法載入此影片的下載選項。"
   },
   "mediaDownloadFailed": {
-    "message": "媒体下载失败。"
+    "message": "影音下載失敗。"
   },
   "qualityAuto": {
-    "message": "自动"
+    "message": "自動"
   },
   "quality8k": {
     "message": "8K"
   },
   "qualityDolbyVision": {
-    "message": "杜比视界"
+    "message": "杜比視界"
   },
   "qualityHdr": {
     "message": "HDR"
@@ -237,22 +237,22 @@
     "message": "360P"
   },
   "downloadVideoWithAudio": {
-    "message": "视频+音频"
+    "message": "影片+音訊"
   },
   "downloadAudioOnly": {
-    "message": "仅音频"
+    "message": "僅音訊"
   },
   "downloadVideoOnly": {
-    "message": "仅视频"
+    "message": "僅影片"
   },
   "updateButton": {
     "message": "更新"
   },
   "updateChecking": {
-    "message": "正在检查更新..."
+    "message": "正在檢查更新..."
   },
   "updateAvailable": {
-    "message": "发现新版本：v$VERSION$",
+    "message": "發現新版本：v$VERSION$",
     "placeholders": {
       "version": {
         "content": "$1"
@@ -268,22 +268,22 @@
     }
   },
   "updateDownloading": {
-    "message": "正在下载最新安装包..."
+    "message": "正在下載最新安裝包..."
   },
   "updateDownloaded": {
-    "message": "最新安装包已下载，请按步骤重新加载扩展。"
+    "message": "最新安裝包已下載，請按步驟重新載入擴充功能。"
   },
   "updateFailed": {
-    "message": "检查更新失败。"
+    "message": "檢查更新失敗。"
   },
   "updateApplyFailed": {
-    "message": "无法开始更新下载。"
+    "message": "無法開始更新下載。"
   },
   "updateBannerTitle": {
     "message": "有新版本可更新"
   },
   "updateBannerBody": {
-    "message": "最新版本 v$VERSION$ 已发布。一点即可下载安装包并查看更新步骤。",
+    "message": "最新版本 v$VERSION$ 已發布。一鍵即可下載安裝包並檢視更新步驟。",
     "placeholders": {
       "version": {
         "content": "$1"
@@ -294,61 +294,61 @@
     "message": "立即更新"
   },
   "updateCheckNow": {
-    "message": "检查更新"
+    "message": "檢查更新"
   },
   "copyText": {
-    "message": "复制"
+    "message": "複製"
   },
   "copyTextTitle": {
-    "message": "复制纯文本字幕到剪贴板"
+    "message": "複製純文字字幕至剪貼簿"
   },
   "copiedText": {
-    "message": "已复制✓"
+    "message": "已複製✓"
   },
   "copiedSuccessToast": {
-    "message": "已成功复制字幕全文到剪贴板"
+    "message": "已成功複製字幕全文至剪貼簿"
   },
   "copyFailedToast": {
-    "message": "复制到剪贴板失败"
+    "message": "複製至剪貼簿失敗"
   },
   "metricSpeedLabel": {
-    "message": "实时速度"
+    "message": "即時速度"
   },
   "metricSizeLabel": {
-    "message": "传输大小"
+    "message": "傳輸大小"
   },
   "metricEtaLabel": {
-    "message": "预计剩余"
+    "message": "預計剩餘"
   },
   "metricDoneSpeed": {
     "message": "完成"
   },
   "mediaStepVideo": {
-    "message": "拉取视频流"
+    "message": "拉取視訊軌"
   },
   "mediaStepAudio": {
-    "message": "拉取音频流"
+    "message": "拉取音訊軌"
   },
   "mediaStepRemux": {
-    "message": "本地合成 MP4"
+    "message": "本機合成 MP4"
   },
   "mediaBgAssurance": {
-    "message": "后台安心下载中：可随时关闭弹窗或切换标签页，下载不受影响，完成后将发送系统通知提醒。"
+    "message": "背景安心下載中：可隨時關閉彈窗或切換分頁，下載不受影響，完成後將傳送系統通知提醒。"
   },
   "activeJobRunning": {
-    "message": "后台下载进行中"
+    "message": "背景下載進行中"
   },
   "activeJobViewBtn": {
-    "message": "查看进度"
+    "message": "檢視進度"
   },
   "cancelButton": {
-    "message": "取消下载"
+    "message": "取消下載"
   },
   "mediaProgressCancelled": {
-    "message": "已取消本次下载任务"
+    "message": "已取消本次下載任務"
   },
   "notificationDownloadDone": {
-    "message": "视频下载完成！已成功保存: $FILENAME$",
+    "message": "影片下載完成！已成功儲存: $FILENAME$",
     "placeholders": {
       "filename": {
         "content": "$1"
@@ -356,7 +356,7 @@
     }
   },
   "notificationDownloadFailed": {
-    "message": "视频下载失败: $ERROR$",
+    "message": "影片下載失敗: $ERROR$",
     "placeholders": {
       "error": {
         "content": "$1"
@@ -364,30 +364,30 @@
     }
   },
   "starPromptKicker": {
-    "message": "里程碑达成"
+    "message": "里程碑達成"
   },
   "starPromptTitle": {
-    "message": "你已经使用 10 次啦！"
+    "message": "你已經使用 10 次啦！"
   },
   "starPromptBody": {
-    "message": "很高兴 KenEasy 能为你提供便利。如果喜欢这个小工具，能否去 GitHub 为我们点亮一颗 Star 呢？这是对开发者持续更新的最大鼓励！"
+    "message": "很高興 KenEasy 能為你帶來便利。如果喜歡這個小工具，能否到 GitHub 為我們點亮一顆 Star 呢？這是對開發者持續更新的最大鼓勵！"
   },
   "starPromptActionLabel": {
-    "message": "去 GitHub 点个 Star ★"
+    "message": "前往 GitHub 給個 Star ★"
   },
   "starPromptLaterLabel": {
-    "message": "稍后再说"
+    "message": "稍後再說"
   },
   "starPromptThankToast": {
-    "message": "非常感谢你的支持与鼓励！❤️"
+    "message": "非常感謝你的支持與鼓勵！❤️"
   },
   "starPromptNeverLabel": {
     "message": "不再提示"
   },
   "langSelectLabel": {
-    "message": "界面语言"
+    "message": "介面語言"
   },
   "langAuto": {
-    "message": "自动"
+    "message": "自動"
   }
 }

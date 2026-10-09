@@ -73,7 +73,7 @@
     "message": "Subtitle preview"
   },
   "backButton": {
-    "message": "Back"
+    "message": "Return"
   },
   "footerFormats": {
     "message": "TXT / SRT"
@@ -332,9 +332,6 @@
   "mediaStepRemux": {
     "message": "Local MP4 remuxing"
   },
-  "mediaStepSave": {
-    "message": "Saving local file"
-  },
   "mediaBgAssurance": {
     "message": "Safe to close popup or switch tabs. Download continues in background with desktop notification on finish."
   },
@@ -383,5 +380,14 @@
   },
   "starPromptThankToast": {
     "message": "Thank you so much for your support! ❤️"
+  },
+  "starPromptNeverLabel": {
+    "message": "Don't show again"
+  },
+  "langSelectLabel": {
+    "message": "Language"
+  },
+  "langAuto": {
+    "message": "Auto"
   }
 }

@@ -5,6 +5,7 @@ const appState = {
   mediaJobId: null,
   updateInfo: null,
   hasPromptedInSession: false,
+  localeDict: null,
 };
 
 const BRAND_CONFIG = globalThis.KENEASY_BILICC_CONFIG;
@@ -13,6 +14,7 @@ const USAGE_STORAGE_KEYS = Object.freeze({
   count: `${STORAGE_PREFIX}usage_success_count`,
   starStatus: `${STORAGE_PREFIX}star_prompt_status`,
   nextPromptAt: `${STORAGE_PREFIX}star_next_prompt_count`,
+  uiLang: `${STORAGE_PREFIX}ui_language`,
 });
 const USAGE_MILESTONE = 10;
 const SNOOZE_INCREMENT = 20;
@@ -76,6 +78,13 @@ async function snoozeStarPrompt() {
   hideStarPromptModal();
 }
 
+async function dismissPermanentlyStarPrompt() {
+  try {
+    await setStorageItem(USAGE_STORAGE_KEYS.starStatus, 'dismissed_permanent');
+  } catch (_) {}
+  hideStarPromptModal();
+}
+
 function showStarPromptModal() {
   const modal = document.getElementById('starPromptModal');
   if (modal) {
@@ -89,6 +98,67 @@ function hideStarPromptModal() {
   if (modal) {
     modal.hidden = true;
     modal.setAttribute('aria-hidden', 'true');
+  }
+}
+
+async function changeLanguage(selectedLang) {
+  await setStorageItem(USAGE_STORAGE_KEYS.uiLang, selectedLang);
+  await applyActiveLanguage(selectedLang);
+}
+
+async function applyActiveLanguage(selectedLang) {
+  let effectiveLang = selectedLang;
+  if (!effectiveLang || effectiveLang === 'auto') {
+    const raw = (typeof chrome !== 'undefined' && chrome.i18n?.getUILanguage?.()) || (typeof navigator !== 'undefined' ? navigator.language : 'en') || 'en';
+    const lower = String(raw).toLowerCase();
+    if (lower.startsWith('zh-tw') || lower.startsWith('zh-hk')) {
+      effectiveLang = 'zh_TW';
+    } else if (lower.startsWith('zh')) {
+      effectiveLang = 'zh_CN';
+    } else if (lower.startsWith('ja')) {
+      effectiveLang = 'ja';
+    } else if (lower.startsWith('ko')) {
+      effectiveLang = 'ko';
+    } else {
+      effectiveLang = 'en';
+    }
+  }
+
+  try {
+    let dict = null;
+    if (typeof chrome !== 'undefined' && chrome.runtime?.getURL) {
+      const url = chrome.runtime.getURL(`_locales/${effectiveLang}/messages.json`);
+      const resp = await fetch(url);
+      if (resp.ok) dict = await resp.json();
+    }
+    appState.localeDict = dict;
+  } catch (err) {
+    appState.localeDict = null;
+  }
+
+  document.documentElement.lang = effectiveLang.replace('_', '-');
+  applyStaticText();
+
+  const langSelect = document.getElementById('langSelect');
+  if (langSelect && selectedLang) {
+    langSelect.value = selectedLang;
+  }
+
+  if (appState.video) {
+    const qualitySelect = document.getElementById('mediaQualitySelect');
+    const modeSelect = document.getElementById('mediaModeSelect');
+    if (qualitySelect && appState.mediaOptions?.qualities) {
+      fillSelect(qualitySelect, appState.mediaOptions.qualities, (item) => ({
+        value: item.id,
+        label: item.labelKey ? t(item.labelKey) : (item.label || item.id),
+      }), qualitySelect.value);
+    }
+    if (modeSelect && appState.mediaOptions?.modes) {
+      fillSelect(modeSelect, appState.mediaOptions.modes, (item) => ({
+        value: item.id,
+        label: item.labelKey ? t(item.labelKey) : (item.label || item.id),
+      }), modeSelect.value);
+    }
   }
 }
 
@@ -176,6 +246,9 @@ const FALLBACK_TEXT = Object.freeze({
   starPromptActionLabel: 'Star on GitHub ★',
   starPromptLaterLabel: 'Maybe later',
   starPromptThankToast: 'Thank you so much for your support! ❤️',
+  starPromptNeverLabel: "Don't show again",
+  langSelectLabel: 'Language',
+  langAuto: 'Auto',
   mediaOptionsFailed: 'Unable to load media download options for this video.',
   mediaDownloadFailed: 'Media download failed.',
   qualityAuto: 'Auto',
@@ -263,7 +336,12 @@ const UPDATE_MESSAGE_TYPES = Object.freeze({
 });
 
 document.addEventListener('DOMContentLoaded', async () => {
-  applyStaticText();
+  const savedLang = (await getStorageItem(USAGE_STORAGE_KEYS.uiLang)) || 'auto';
+  await applyActiveLanguage(savedLang);
+
+  document.getElementById('langSelect')?.addEventListener('change', async (e) => {
+    await changeLanguage(e.target.value);
+  });
   document.getElementById('fetchBtn')?.addEventListener('click', fetchSubtitles);
   document.getElementById('mediaDownloadBtn')?.addEventListener('click', downloadMedia);
   document.getElementById('footerUpdateBtn')?.addEventListener('click', () => handleUpdateButtonClick());
@@ -308,6 +386,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   document.getElementById('starPromptLaterBtn')?.addEventListener('click', () => {
     snoozeStarPrompt();
+  });
+
+  document.getElementById('starPromptNeverBtn')?.addEventListener('click', () => {
+    dismissPermanentlyStarPrompt();
   });
 
   starModal?.addEventListener('click', (event) => {
@@ -1457,6 +1539,7 @@ function applyStaticText() {
   setText('starPromptBody', t('starPromptBody'));
   setText('starPromptActionLabel', t('starPromptActionLabel'));
   setText('starPromptLaterLabel', t('starPromptLaterLabel'));
+  setText('starPromptNeverLabel', t('starPromptNeverLabel'));
   setText('progressInfo', `${t('progressStart')} (0%)`);
   setText('step1', t('progressVideo'));
   setText('step2', t('progressTracks'));
@@ -1497,6 +1580,25 @@ function getExtensionVersion() {
 }
 
 function t(key, substitutions = []) {
+  if (appState.localeDict && appState.localeDict[key]?.message) {
+    let text = appState.localeDict[key].message;
+    substitutions.forEach((value, index) => {
+      text = text
+        .replace(`$${key.toUpperCase()}$`, value)
+        .replace(`$${index + 1}`, value)
+        .replace('$COUNT$', value)
+        .replace('$VERSION$', value)
+        .replace('$FILENAME$', value)
+        .replace('$STATUS$', value)
+        .replace('$ERROR$', value)
+        .replace(`{${index}}`, value)
+        .replace('{count}', value)
+        .replace('{status}', value)
+        .replace('{version}', value);
+    });
+    return text;
+  }
+
   if (typeof chrome !== 'undefined' && chrome.i18n?.getMessage) {
     const message = chrome.i18n.getMessage(key, substitutions.map(String));
     if (message) return message;
