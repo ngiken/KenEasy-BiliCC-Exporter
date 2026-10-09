@@ -4,6 +4,7 @@ const appState = {
   mediaOptions: null,
   mediaJobId: null,
   updateInfo: null,
+  hasPromptedInSession: false,
 };
 
 const BRAND_CONFIG = globalThis.KENEASY_BILICC_CONFIG;
@@ -11,8 +12,10 @@ const STORAGE_PREFIX = BRAND_CONFIG.storage.subtitleHintPrefix;
 const USAGE_STORAGE_KEYS = Object.freeze({
   count: `${STORAGE_PREFIX}usage_success_count`,
   starStatus: `${STORAGE_PREFIX}star_prompt_status`,
+  nextPromptAt: `${STORAGE_PREFIX}star_next_prompt_count`,
 });
 const USAGE_MILESTONE = 10;
+const SNOOZE_INCREMENT = 20;
 
 async function getStorageItem(key) {
   try {
@@ -46,7 +49,13 @@ async function recordSuccessfulUsage() {
     await setStorageItem(USAGE_STORAGE_KEYS.count, count);
 
     const status = await getStorageItem(USAGE_STORAGE_KEYS.starStatus);
-    if (count >= USAGE_MILESTONE && status !== 'starred' && status !== 'dismissed') {
+    if (status === 'starred' || status === 'dismissed_permanent') return;
+
+    const rawNext = await getStorageItem(USAGE_STORAGE_KEYS.nextPromptAt);
+    const nextPromptAt = parseInt(rawNext, 10) || USAGE_MILESTONE;
+
+    if (count >= nextPromptAt && !appState.hasPromptedInSession) {
+      appState.hasPromptedInSession = true;
       setTimeout(() => {
         showStarPromptModal();
       }, 700);
@@ -54,6 +63,17 @@ async function recordSuccessfulUsage() {
   } catch (err) {
     console.warn('[KenEasy] Usage tracking error:', err);
   }
+}
+
+async function snoozeStarPrompt() {
+  try {
+    const raw = await getStorageItem(USAGE_STORAGE_KEYS.count);
+    const count = parseInt(raw, 10) || USAGE_MILESTONE;
+    const nextTarget = count + SNOOZE_INCREMENT;
+    await setStorageItem(USAGE_STORAGE_KEYS.nextPromptAt, nextTarget);
+    await setStorageItem(USAGE_STORAGE_KEYS.starStatus, 'later');
+  } catch (_) {}
+  hideStarPromptModal();
 }
 
 function showStarPromptModal() {
@@ -281,14 +301,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   });
 
-  document.getElementById('starPromptCloseBtn')?.addEventListener('click', async () => {
-    hideStarPromptModal();
-    await setStorageItem(USAGE_STORAGE_KEYS.starStatus, 'dismissed');
+  const starModal = document.getElementById('starPromptModal');
+  document.getElementById('starPromptCloseBtn')?.addEventListener('click', () => {
+    snoozeStarPrompt();
   });
 
-  document.getElementById('starPromptLaterBtn')?.addEventListener('click', async () => {
-    hideStarPromptModal();
-    await setStorageItem(USAGE_STORAGE_KEYS.starStatus, 'later');
+  document.getElementById('starPromptLaterBtn')?.addEventListener('click', () => {
+    snoozeStarPrompt();
+  });
+
+  starModal?.addEventListener('click', (event) => {
+    if (event.target === starModal) {
+      snoozeStarPrompt();
+    }
+  });
+
+  window.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && starModal && !starModal.hidden) {
+      snoozeStarPrompt();
+    }
   });
 
   document.getElementById('starPromptActionBtn')?.addEventListener('click', async () => {
