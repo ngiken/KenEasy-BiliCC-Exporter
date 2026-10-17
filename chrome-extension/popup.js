@@ -147,6 +147,7 @@ async function applyActiveLanguage(selectedLang) {
   if (langSelect && selectedLang) {
     langSelect.value = selectedLang;
   }
+  syncCustomLangPicker(selectedLang);
 
   const helpLink = document.getElementById('footerHelp');
   if (helpLink) {
@@ -350,6 +351,7 @@ const UPDATE_MESSAGE_TYPES = Object.freeze({
 });
 
 document.addEventListener('DOMContentLoaded', async () => {
+  initCustomLangPicker();
   const savedLang = (await getStorageItem(USAGE_STORAGE_KEYS.uiLang)) || 'auto';
   await applyActiveLanguage(savedLang);
 
@@ -1590,7 +1592,7 @@ function getExtensionVersion() {
   if (typeof chrome !== 'undefined' && chrome.runtime?.getManifest) {
     return chrome.runtime.getManifest().version;
   }
-  return '3.0.0';
+  return '3.0.1';
 }
 
 function t(key, substitutions = []) {
@@ -1632,3 +1634,115 @@ function t(key, substitutions = []) {
 function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
+
+function syncCustomLangPicker(selectedLang) {
+  const triggerLabel = document.getElementById('langTriggerLabel');
+  const menu = document.getElementById('langMenu');
+  if (!triggerLabel || !menu) return;
+
+  const labels = {
+    auto: '🌐 Auto',
+    zh_CN: '简体中文',
+    zh_TW: '繁體中文',
+    en: 'English',
+    ja: '日本語',
+    ko: '한국어',
+  };
+
+  const currentKey = labels[selectedLang] ? selectedLang : 'auto';
+  triggerLabel.textContent = labels[currentKey];
+
+  menu.querySelectorAll('.lang-option').forEach((btn) => {
+    const isCurrent = btn.dataset.lang === currentKey;
+    btn.classList.toggle('is-active', isCurrent);
+    btn.setAttribute('aria-selected', String(isCurrent));
+  });
+}
+
+function initCustomLangPicker() {
+  const wrap = document.getElementById('langPickerWrap');
+  const trigger = document.getElementById('langTrigger');
+  const menu = document.getElementById('langMenu');
+  const select = document.getElementById('langSelect');
+  if (!wrap || !trigger || !menu) return;
+
+  function openMenu() {
+    menu.hidden = false;
+    trigger.setAttribute('aria-expanded', 'true');
+    const activeBtn = menu.querySelector('.lang-option.is-active') || menu.querySelector('.lang-option');
+    activeBtn?.focus();
+  }
+
+  function closeMenu(restoreFocus = false) {
+    if (menu.hidden) return;
+    menu.hidden = true;
+    trigger.setAttribute('aria-expanded', 'false');
+    if (restoreFocus) trigger.focus();
+  }
+
+  function toggleMenu() {
+    if (menu.hidden) {
+      openMenu();
+    } else {
+      closeMenu();
+    }
+  }
+
+  trigger.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleMenu();
+  });
+
+  menu.querySelectorAll('.lang-option').forEach((btn) => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const nextLang = btn.dataset.lang;
+      closeMenu(true);
+      if (select) {
+        select.value = nextLang;
+      }
+      await changeLanguage(nextLang);
+    });
+  });
+
+  // Accessible keyboard navigation
+  menu.addEventListener('keydown', (e) => {
+    const items = Array.from(menu.querySelectorAll('.lang-option'));
+    const currentIndex = items.indexOf(document.activeElement);
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      const nextIndex = (currentIndex + 1) % items.length;
+      items[nextIndex]?.focus();
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      const prevIndex = (currentIndex - 1 + items.length) % items.length;
+      items[prevIndex]?.focus();
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      items[0]?.focus();
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      items[items.length - 1]?.focus();
+    } else if (e.key === 'Tab') {
+      closeMenu();
+    }
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!wrap.contains(e.target)) {
+      closeMenu();
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !menu.hidden) {
+      closeMenu(true);
+    }
+  });
+
+  select?.addEventListener('change', (e) => {
+    syncCustomLangPicker(e.target.value);
+  });
+}
+

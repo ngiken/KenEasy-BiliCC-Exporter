@@ -1,6 +1,6 @@
 (function () {
   const params = new URLSearchParams(location.search);
-  const current = params.get('current') || (chrome.runtime?.getManifest ? chrome.runtime.getManifest().version : '3.0.0');
+  const current = params.get('current') || (chrome.runtime?.getManifest ? chrome.runtime.getManifest().version : '3.0.1');
   const latest = params.get('latest') || '-';
   const packageName = params.get('package') || 'KenEasy-BiliCC-Exporter-manual-install.zip';
   const releaseUrl = params.get('release') || 'https://github.com/ngiken/KenEasy-BiliCC-Exporter/releases/latest';

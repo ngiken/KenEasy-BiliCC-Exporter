@@ -30,7 +30,8 @@ button:focus-visible, a:focus-visible { outline: 3px solid color-mix(in srgb, va
 .nav-link:hover, .nav-link.active { background: var(--surface-muted); color: var(--text); }
 .nav-link:hover { transform: translateY(-1px); }
 .lang-switch { display: flex; align-items: center; gap: 2px; margin-left: 5px; padding: 3px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface-muted); }
-.lang-btn { min-width: 29px; height: 27px; border: 0; border-radius: 7px; background: transparent; color: var(--text-tertiary); cursor: pointer; font-size: 10px; font-weight: 780; }
+.lang-btn { min-width: 29px; height: 27px; border: 0; border-radius: 7px; background: transparent; color: var(--text-tertiary); cursor: pointer; font-size: 10px; font-weight: 780; transition: background 160ms ease, color 160ms ease; }
+.lang-btn:hover:not(.active) { background: var(--surface-hover); color: var(--text); }
 .lang-btn.active { background: var(--surface-strong); color: var(--text); box-shadow: 0 2px 6px rgba(30,35,55,.08); }
 .theme-toggle { display: grid; width: 36px; height: 36px; place-items: center; margin-left: 2px; border: 0; border-radius: 11px; background: var(--surface-muted); color: var(--text-secondary); cursor: pointer; font-size: 20px; line-height: 1; }
 .theme-toggle:hover { background: var(--surface-hover); color: var(--text); }

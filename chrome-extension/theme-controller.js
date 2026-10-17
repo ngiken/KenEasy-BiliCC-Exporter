@@ -27,6 +27,7 @@
     document.querySelector('meta[name="theme-color"]')?.setAttribute('content', themeRules.themeColors[theme]);
     // Keep system form controls aligned with our explicit theme tokens.
     if (document.body) {
+      document.body.style.colorScheme = theme;
       document.body.style.color = theme === 'dark' ? '#f5f5f7' : '#1d1d1f';
       document.body.style.backgroundColor = theme === 'dark' ? '#09090b' : '#f5f5f7';
     }

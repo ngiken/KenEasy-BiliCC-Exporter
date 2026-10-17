@@ -1,5 +1,16 @@
 # Changelog
 
+## 3.0.1 - 2026-10-18
+
+Custom dark-mode safe language picker & contrast hardening release.
+
+- **Custom Glassmorphic Language Picker**: Completely replaced the native OS select dropdown with a custom, pure DOM floating dropdown menu (`.lang-trigger` and `.lang-menu`). Resolves the critical Chromium on Windows issue where opening native select in dark mode rendered a bright white popup with white text (white-on-white text illegibility).
+- **High-Contrast Dark & Light Visual Styling**: In dark mode, the custom dropdown features a deep frosted glass acrylic background (`rgba(28, 28, 32, 0.96)`), high-contrast crisp text (`#f5f5f7`), translucent hover feedback, and Apple Blue active indicators with SVG checkmarks. In light mode, it renders a clean, subtle frosted white card with dark text.
+- **Two-Way Synchronization & Zero-Break Compatibility**: Preserves the hidden native `<select id="langSelect">` in DOM with automated two-way synchronization, ensuring full compatibility with existing extensions APIs, background workers, and automated test runners.
+- **Stacking Context & Click Interception Protection**: Elevated `.header` and `.lang-picker-wrap` stacking contexts (`z-index: 50`), ensuring the language dropdown floats cleanly above all cards, toasts, and main content without pointer event interference.
+- **Full Keyboard Accessibility**: Added comprehensive keyboard navigation (<kbd>↑</kbd> / <kbd>↓</kbd> / <kbd>Home</kbd> / <kbd>End</kbd> / <kbd>Enter</kbd> / <kbd>Esc</kbd>) and screen-reader ARIA roles (`role="listbox"`, `role="option"`, `aria-selected`, `aria-expanded`).
+- **Comprehensive E2E Regression Matrix**: Expanded automated Playwright regression suite to 36 tests, verifying dark mode contrast, menu opening/closing, option selection, and state synchronization.
+
 ## 3.0.0 - 2026-10-09
 
 Major media downloader modernization, 10-usage milestone star prompt & zero-anxiety streaming engine release.
