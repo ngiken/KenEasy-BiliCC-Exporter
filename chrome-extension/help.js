@@ -182,7 +182,7 @@ function setLanguage(language) {
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('[data-help-lang]').forEach((button) => button.addEventListener('click', () => setLanguage(button.dataset.helpLang)));
   document.getElementById('closeHelp')?.addEventListener('click', () => window.close());
-  const version = typeof chrome !== 'undefined' && chrome.runtime?.getManifest ? chrome.runtime.getManifest().version : '3.0.1';
+  const version = typeof chrome !== 'undefined' && chrome.runtime?.getManifest ? chrome.runtime.getManifest().version : '3.0.2';
   const versionNode = document.getElementById('helpVersion');
   if (versionNode) versionNode.textContent = `v${version}`;
   setLanguage(browserLanguage());

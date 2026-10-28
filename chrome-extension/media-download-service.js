@@ -364,10 +364,15 @@
   }
 
   function safeFilenamePart(name, maxLength = 80) {
-    const cleaned = String(name || 'bilibili')
+    let cleaned = String(name || 'bilibili')
       .replace(/[\\/:*?"<>|]/g, '_')
       .replace(/\s+/g, ' ')
-      .trim();
+      .trim()
+      .replace(/[.\s]+$/, '');
+    const base = cleaned.replace(/\.[^.]*$/, '');
+    if (/^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])$/i.test(base)) {
+      cleaned = `${cleaned}_`;
+    }
     return (cleaned || 'bilibili').slice(0, maxLength);
   }
 

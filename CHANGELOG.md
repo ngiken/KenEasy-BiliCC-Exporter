@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.0.2 - 2026-10-28
+
+Filename sanitization hardening, copy button accessibility, and Windows filesystem reliability release.
+
+- **Hardened Filename Sanitization**: Enhanced filename generation logic for both subtitle downloads and media exports. Automatically strips illegal characters, collapses whitespace, removes trailing dots and spaces, and guards against Windows reserved device names (`CON`, `PRN`, `AUX`, `NUL`, `COM1-9`, `LPT1-9`). Prevents silent download failures or invalid path errors on Windows machines.
+- **Copy Button Accessibility & Rapid-Click Debounce**: Added `aria-label` accessibility metadata to the one-click subtitle copy action for screen-reader users, and debounced the copied feedback timer to ensure clean visual transitions even under rapid consecutive clicks.
+- **Expanded E2E Regression Matrix**: Extended automated Playwright test suite to 37 checks, verifying filename sanitization edge cases alongside full UI workflow validation.
+
 ## 3.0.1 - 2026-10-18
 
 Custom dark-mode safe language picker & contrast hardening release.

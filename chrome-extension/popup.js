@@ -734,6 +734,8 @@ function createCopyButton(track, index) {
   button.type = 'button';
   button.textContent = t('copyText');
   button.title = t('copyTextTitle');
+  button.setAttribute('aria-label', t('copyTextTitle'));
+  let resetTimer = null;
   button.addEventListener('click', async () => {
     const text = toPlainText(track.entries);
     try {
@@ -750,12 +752,12 @@ function createCopyButton(track, index) {
         document.execCommand('copy');
         textarea.remove();
       }
-      const prev = button.textContent;
+      clearTimeout(resetTimer);
       button.textContent = t('copiedText');
       button.classList.add('downloaded');
       showStatusToast(t('copiedSuccessToast'), 'success');
-      setTimeout(() => {
-        button.textContent = prev;
+      resetTimer = setTimeout(() => {
+        button.textContent = t('copyText');
         button.classList.remove('downloaded');
       }, 1500);
     } catch (e) {
@@ -1490,10 +1492,15 @@ function safeFilename(name) {
 }
 
 function safeFilenamePart(name, maxLength) {
-  const cleaned = String(name || 'subtitle')
+  let cleaned = String(name || 'subtitle')
     .replace(/[\\/:*?"<>|]/g, '_')
     .replace(/\s+/g, ' ')
-    .trim();
+    .trim()
+    .replace(/[.\s]+$/, '');
+  const base = cleaned.replace(/\.[^.]*$/, '');
+  if (/^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])$/i.test(base)) {
+    cleaned = `${cleaned}_`;
+  }
   return (cleaned || 'subtitle').slice(0, maxLength);
 }
 
@@ -1592,7 +1599,7 @@ function getExtensionVersion() {
   if (typeof chrome !== 'undefined' && chrome.runtime?.getManifest) {
     return chrome.runtime.getManifest().version;
   }
-  return '3.0.1';
+  return '3.0.2';
 }
 
 function t(key, substitutions = []) {
