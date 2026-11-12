@@ -1,5 +1,12 @@
 # Changelog
 
+## 3.0.3 - 2026-11-12
+
+Version single-source and release-hygiene patch.
+
+- **Version single source**: the popup footer, help page, update page and every script fallback now agree with `manifest.json`, so a future bump cannot leave a stale version number on screen.
+- **No functional change**: no behaviour, permissions or network surface changed in this release.
+
 ## 3.0.2 - 2026-10-28
 
 Filename sanitization hardening, copy button accessibility, and Windows filesystem reliability release.

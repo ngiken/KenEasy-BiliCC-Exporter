@@ -1599,7 +1599,7 @@ function getExtensionVersion() {
   if (typeof chrome !== 'undefined' && chrome.runtime?.getManifest) {
     return chrome.runtime.getManifest().version;
   }
-  return '3.0.2';
+  return '3.0.3';
 }
 
 function t(key, substitutions = []) {
