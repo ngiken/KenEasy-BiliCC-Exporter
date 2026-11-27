@@ -44,8 +44,15 @@
     }
 
     if (request.type === 'FETCH_BINARY_FROM_PAGE') {
-      fetchBinaryFromPageContext(request.url)
-        .then((data) => sendResponse({ success: true, base64: data.base64, byteLength: data.byteLength }))
+      fetchBinaryFromPageContext(request.url, request.rangeStart, request.rangeEnd)
+        .then((data) => sendResponse({
+          success: true,
+          status: data.status,
+          contentRange: data.contentRange,
+          contentLength: data.contentLength,
+          base64: data.base64,
+          byteLength: data.byteLength,
+        }))
         .catch((error) => sendResponse({ success: false, error: error.message }));
       return true;
     }
@@ -61,7 +68,13 @@
     if (message.success) {
       if (message.type === MESSAGE_TYPES.infoResponse) pending.resolve(message.state);
       else if (message.type === MESSAGE_TYPES.binaryFetchResponse) {
-        pending.resolve({ base64: message.base64, byteLength: message.byteLength });
+        pending.resolve({
+          status: message.status,
+          contentRange: message.contentRange || '',
+          contentLength: message.contentLength || 0,
+          base64: message.base64,
+          byteLength: message.byteLength,
+        });
       } else pending.resolve(message.data);
     } else {
       pending.reject(new Error(message.error || 'Request failed'));
@@ -128,9 +141,13 @@
     return requestFromMainWorld(MESSAGE_TYPES.fetchRequest, 10000, { url });
   }
 
-  function fetchBinaryFromPageContext(url) {
+  function fetchBinaryFromPageContext(url, rangeStart, rangeEnd) {
     // Large media needs a longer timeout than JSON API calls.
-    return requestFromMainWorld(MESSAGE_TYPES.binaryFetchRequest, 10 * 60 * 1000, { url });
+    return requestFromMainWorld(MESSAGE_TYPES.binaryFetchRequest, 10 * 60 * 1000, {
+      url,
+      rangeStart,
+      rangeEnd,
+    });
   }
 
   function getPageInitialState() {
@@ -139,17 +156,18 @@
 
   function extractVideoInfo(state) {
     const bvid = extractBvidFromUrl(location.href);
+    const pParam = Number(new URLSearchParams(location.search).get('p') || 0);
 
     if (state && state.bvid === bvid) {
       const videoData = state.videoData || {};
       const pages = videoData.pages || [];
-      const currentP = state.p || 1;
+      const currentP = pParam || state.p || 1;
       const currentPage = pages[currentP - 1] || pages[0] || {};
 
       return {
         bvid,
         aid: state.aid || videoData.aid || null,
-        cid: state.cid || currentPage.cid || null,
+        cid: currentPage.cid || state.cid || null,
         title: videoData.title || cleanTitle(document.title),
         pages,
         currentP,
@@ -162,7 +180,7 @@
       cid: null,
       title: cleanTitle(document.title),
       pages: [],
-      currentP: 1,
+      currentP: pParam || 1,
     };
   }
 

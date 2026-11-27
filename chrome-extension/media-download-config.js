@@ -88,6 +88,8 @@
     defaultQualityId: 'auto',
     autoQualityId: 'auto',
     maxParallelFetches: 2,
+    rangeChunkBytes: 4 * 1024 * 1024,
+    chunkMaxRetries: 2,
     progressThrottleMs: 120,
     speedSampleWindowMs: 1500,
     progress: Object.freeze({

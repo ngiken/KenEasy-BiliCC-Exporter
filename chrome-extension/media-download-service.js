@@ -63,13 +63,15 @@
     };
   }
 
-  function cdnProfile() {
-    // Referer/Origin/UA are enforced by KenEasyMediaCdnRules via DNR.
+  function cdnProfile(extraHeaders = {}) {
+    // Referer/UA are enforced by KenEasyMediaCdnRules via DNR.
+    // Bilibili CDN URLs are authenticated via query params, not cookies;
+    // omitting credentials avoids CORS errors when mirrors reply with ACAO: *.
     return {
-      credentials: 'include',
-      cache: 'no-cache',
+      credentials: 'omit',
       headers: {
         Accept: '*/*',
+        ...extraHeaders,
       },
     };
   }
@@ -187,6 +189,28 @@
     throw new Error(errors.join(' | ') || 'Unable to resolve media streams.');
   }
 
+  function hostOf(url) {
+    try {
+      return new URL(url).hostname;
+    } catch (_) {
+      return 'unknown';
+    }
+  }
+
+  function isPcdnUrl(url) {
+    try {
+      const host = new URL(url).hostname.toLowerCase();
+      return (
+        host.includes('mcdn.bilivideo') ||
+        host.endsWith('.szbdyd.com') ||
+        /^xy\d+x/.test(host) ||
+        /^\d+\.\d+\.\d+\.\d+$/.test(host)
+      );
+    } catch (_) {
+      return false;
+    }
+  }
+
   function collectCandidateUrls(primaryUrl, extras) {
     const list = [];
     const push = (value) => {
@@ -195,118 +219,382 @@
     };
     push(primaryUrl);
     (extras || []).forEach(push);
-    return list;
+    // Prefer standard UPOS/Akamai CDN mirrors ahead of PCDN/MCDN nodes while
+    // keeping every URL as a fallback.
+    return list
+      .map((url, index) => ({ url, index, pcdn: isPcdnUrl(url) ? 1 : 0 }))
+      .sort((a, b) => a.pcdn - b.pcdn || a.index - b.index)
+      .map((item) => item.url);
   }
 
-  async function readResponseBuffer(response, onProgress, signal) {
-    const total = Number(response.headers.get('content-length') || 0);
-    const speedometer = createSpeedometer(CONFIG.speedSampleWindowMs || 1500);
-
-    if (!response.body || !response.body.getReader) {
-      if (signal?.aborted) throw new Error('Download cancelled.');
-      const buffer = await response.arrayBuffer();
-      if (onProgress) {
-        onProgress({
-          ratio: 1,
-          loadedBytes: buffer.byteLength,
-          totalBytes: buffer.byteLength,
-          speedBps: 0,
-          etaSeconds: 0,
-          indeterminate: false,
-        });
-      }
-      return buffer;
+  function parseContentRange(headerValue) {
+    if (!headerValue) return null;
+    const text = String(headerValue).trim();
+    const rangeMatch = text.match(/^bytes\s+(\d+)-(\d+)\/(\d+|\*)$/i);
+    if (rangeMatch) {
+      return {
+        start: Number(rangeMatch[1]),
+        end: Number(rangeMatch[2]),
+        total: rangeMatch[3] === '*' ? 0 : Number(rangeMatch[3]),
+      };
     }
-
-    const reader = response.body.getReader();
-    if (signal) {
-      signal.addEventListener('abort', () => {
-        try { reader.cancel(); } catch (_) {}
-      }, { once: true });
+    const unsatMatch = text.match(/^bytes\s+\*\/(\d+)$/i);
+    if (unsatMatch) {
+      return {
+        start: null,
+        end: null,
+        total: Number(unsatMatch[1]),
+      };
     }
+    return null;
+  }
 
-    const chunks = [];
-    let received = 0;
-    const assumedScale = 30 * 1024 * 1024; // 30MB baseline for asymptotic progression if total missing
+  function isCancelledError(error, signal) {
+    return Boolean(
+      signal?.aborted ||
+      error?.name === 'AbortError' ||
+      String(error?.message || '').includes('cancelled'),
+    );
+  }
 
-    while (true) {
-      if (signal?.aborted) {
-        try { reader.cancel(); } catch (_) {}
-        throw new Error('Download cancelled.');
+  function sleepWithSignal(ms, signal) {
+    if (signal?.aborted) return Promise.reject(new Error('Download cancelled.'));
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => {
+        if (signal) signal.removeEventListener('abort', onAbort);
+        resolve();
+      }, ms);
+      function onAbort() {
+        clearTimeout(timer);
+        reject(new Error('Download cancelled.'));
       }
-      const { done, value } = await reader.read();
-      if (done) break;
-      chunks.push(value);
-      received += value.byteLength;
-      speedometer.record(received);
+      if (signal) signal.addEventListener('abort', onAbort, { once: true });
+    });
+  }
 
-      if (onProgress) {
-        let ratio;
-        let indeterminate = false;
-        if (total > 0) {
-          ratio = Math.min(1, received / total);
-        } else {
-          indeterminate = true;
-          // Smooth asymptotic progression preventing stagnation at 18%
-          ratio = Math.min(0.95, 1 - Math.exp(-received / assumedScale));
-        }
-
-        onProgress({
-          ratio,
-          loadedBytes: received,
-          totalBytes: total,
-          speedBps: speedometer.getSpeed(),
-          etaSeconds: speedometer.getEta(total),
-          indeterminate,
-        });
-      }
-    }
-
-    if (onProgress) {
+  function emitTransferProgress(onProgress, speedometer, loadedBytes, totalBytes, done = false) {
+    if (!onProgress) return;
+    const assumedScale = 30 * 1024 * 1024; // 30MB baseline if total size unknown
+    if (done) {
       onProgress({
         ratio: 1,
-        loadedBytes: received,
-        totalBytes: total || received,
+        loadedBytes,
+        totalBytes: totalBytes || loadedBytes,
         speedBps: speedometer.getSpeed(),
         etaSeconds: 0,
         indeterminate: false,
       });
+      return;
     }
 
+    let ratio;
+    let indeterminate = false;
+    if (totalBytes > 0) {
+      ratio = Math.min(1, loadedBytes / totalBytes);
+    } else {
+      indeterminate = true;
+      ratio = Math.min(0.95, 1 - Math.exp(-loadedBytes / assumedScale));
+    }
+
+    onProgress({
+      ratio,
+      loadedBytes,
+      totalBytes,
+      speedBps: speedometer.getSpeed(),
+      etaSeconds: speedometer.getEta(totalBytes),
+      indeterminate,
+    });
+  }
+
+  async function readResponseStreamChunks(response, onChunkBytes, signal) {
+    if (!response.body || !response.body.getReader) {
+      if (signal?.aborted) throw new Error('Download cancelled.');
+      const buffer = await response.arrayBuffer();
+      const bytes = new Uint8Array(buffer);
+      if (onChunkBytes) onChunkBytes(bytes.byteLength);
+      return [bytes];
+    }
+
+    const reader = response.body.getReader();
+    const onAbort = () => {
+      try { reader.cancel(); } catch (_) {}
+    };
+    if (signal) {
+      signal.addEventListener('abort', onAbort, { once: true });
+    }
+
+    const parts = [];
+    try {
+      while (true) {
+        if (signal?.aborted) {
+          try { reader.cancel(); } catch (_) {}
+          throw new Error('Download cancelled.');
+        }
+        const { done, value } = await reader.read();
+        if (done) break;
+        if (value && value.byteLength > 0) {
+          parts.push(value);
+          if (onChunkBytes) onChunkBytes(value.byteLength);
+        }
+      }
+    } finally {
+      if (signal) signal.removeEventListener('abort', onAbort);
+    }
+    return parts;
+  }
+
+  async function fetchWorkerRangeChunk(url, start, end, expectedTotal, onBytes, signal) {
+    const response = await fetch(url, {
+      ...cdnProfile({ Range: `bytes=${start}-${end}` }),
+      signal,
+    });
+    const contentRange = parseContentRange(response.headers.get('content-range'));
+    const contentLength = Number(response.headers.get('content-length') || 0);
+
+    if (response.status === 416) {
+      try { await response.body?.cancel(); } catch (_) {}
+      return { status: 416, contentRange, contentLength: 0, parts: [], byteLength: 0 };
+    }
+
+    if (!response.ok) {
+      try { await response.body?.cancel(); } catch (_) {}
+      throw new Error('Media HTTP ' + response.status);
+    }
+
+    if (response.status === 200 && start > 0) {
+      try { await response.body?.cancel(); } catch (_) {}
+      throw new Error('Unexpected HTTP 200 for partial range');
+    }
+
+    if (response.status === 206 && contentRange) {
+      if (contentRange.start !== null && contentRange.start !== start) {
+        try { await response.body?.cancel(); } catch (_) {}
+        throw new Error(`Range start mismatch: expected ${start}, got ${contentRange.start}`);
+      }
+      if (expectedTotal > 0 && contentRange.total > 0 && contentRange.total !== expectedTotal) {
+        try { await response.body?.cancel(); } catch (_) {}
+        throw new Error(`Mirror size mismatch: expected ${expectedTotal}, got ${contentRange.total}`);
+      }
+    }
+
+    const parts = await readResponseStreamChunks(response, onBytes, signal);
+    const byteLength = parts.reduce((sum, part) => sum + part.byteLength, 0);
+    return {
+      status: response.status,
+      contentRange,
+      contentLength,
+      parts,
+      byteLength,
+    };
+  }
+
+  async function fetchBinaryViaWorker(candidates, onProgress, signal) {
+    // Bilibili CDNs (both UPOS/bilivideo -> HTTP 567 and Akamai -> HTTP 403)
+    // reject unbounded full-file GET requests and require bounded Range requests.
+    const chunkSize = CONFIG.rangeChunkBytes || (4 * 1024 * 1024);
+    const maxRetries = CONFIG.chunkMaxRetries ?? 2;
+    const speedometer = createSpeedometer(CONFIG.speedSampleWindowMs || 1500);
+    const chunks = [];
+    const errors = [];
+
+    let activeIndex = 0;
+    let offset = 0;
+    let totalSize = 0;
+    let retriedInitial416 = false;
+
+    while (totalSize === 0 || offset < totalSize) {
+      if (signal?.aborted) throw new Error('Download cancelled.');
+
+      const rangeEnd = totalSize > 0
+        ? Math.min(totalSize - 1, offset + chunkSize - 1)
+        : offset + chunkSize - 1;
+      const requestedLength = rangeEnd - offset + 1;
+
+      let chunkResult = null;
+      let lastChunkError = null;
+
+      // Try from the active candidate first; if it fails, try remaining mirrors.
+      for (let step = 0; step < candidates.length; step += 1) {
+        const candidateIdx = (activeIndex + step) % candidates.length;
+        const candidateUrl = candidates[candidateIdx];
+        const attempts = offset > 0 ? maxRetries + 1 : 1;
+
+        for (let attempt = 0; attempt < attempts; attempt += 1) {
+          if (signal?.aborted) throw new Error('Download cancelled.');
+          let inFlightBytes = 0;
+          try {
+            chunkResult = await fetchWorkerRangeChunk(
+              candidateUrl,
+              offset,
+              rangeEnd,
+              totalSize,
+              (delta) => {
+                inFlightBytes += delta;
+                const loaded = offset + inFlightBytes;
+                speedometer.record(loaded);
+                emitTransferProgress(onProgress, speedometer, loaded, totalSize, false);
+              },
+              signal,
+            );
+            activeIndex = candidateIdx;
+            break;
+          } catch (error) {
+            if (isCancelledError(error, signal)) throw error;
+            lastChunkError = error;
+            if (attempt + 1 < attempts) {
+              await sleepWithSignal(300 * (attempt + 1), signal);
+            }
+          }
+        }
+
+        if (chunkResult) break;
+        errors.push(`worker[${hostOf(candidateUrl)}@${offset}-${rangeEnd}]:${lastChunkError?.message || lastChunkError || 'fetch failed'}`);
+        // At offset 0, try next candidate immediately without wrapping around.
+        if (offset === 0 && candidateIdx === candidates.length - 1) break;
+      }
+
+      if (!chunkResult) {
+        const err = new Error(errors.join(' | ') || lastChunkError?.message || 'Worker media fetch failed.');
+        err.collectedErrors = errors;
+        throw err;
+      }
+
+      if (chunkResult.status === 416) {
+        if (offset === 0 && !retriedInitial416 && chunkResult.contentRange?.total > 0) {
+          retriedInitial416 = true;
+          totalSize = chunkResult.contentRange.total;
+          continue;
+        }
+        if (offset > 0 && totalSize === 0) {
+          break;
+        }
+        throw new Error('Media HTTP 416');
+      }
+
+      if (chunkResult.status === 200) {
+        // Server ignored Range and returned the complete stream from byte 0.
+        for (const part of chunkResult.parts) chunks.push(part);
+        offset += chunkResult.byteLength;
+        totalSize = chunkResult.contentLength || offset;
+        break;
+      }
+
+      // HTTP 206 Partial Content
+      if (chunkResult.contentRange?.total > 0) {
+        totalSize = chunkResult.contentRange.total;
+      }
+      if (chunkResult.byteLength === 0) {
+        if (totalSize > 0 && offset < totalSize) {
+          throw new Error(`Empty media chunk at byte ${offset}/${totalSize}`);
+        }
+        break;
+      }
+
+      for (const part of chunkResult.parts) chunks.push(part);
+      offset += chunkResult.byteLength;
+      speedometer.record(offset);
+      emitTransferProgress(onProgress, speedometer, offset, totalSize, false);
+
+      if (totalSize === 0 && chunkResult.byteLength < requestedLength) {
+        break;
+      }
+    }
+
+    if (totalSize > 0 && offset < totalSize) {
+      throw new Error(`Incomplete media download: ${offset}/${totalSize}`);
+    }
+
+    emitTransferProgress(onProgress, speedometer, offset, totalSize || offset, true);
     return concatArrayBuffers(chunks);
   }
 
-  async function fetchBinaryViaWorker(url, onProgress, signal) {
-    const response = await fetch(url, { ...cdnProfile(), signal });
-    if (!response.ok) throw new Error('Media HTTP ' + response.status);
-    return readResponseBuffer(response, onProgress, signal);
+  function base64ToUint8Array(base64) {
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+    return bytes;
   }
 
   async function fetchBinaryViaPage(tabId, url, onProgress, signal) {
     if (!tabId) throw new Error('No tab for page-context media fetch.');
     if (signal?.aborted) throw new Error('Download cancelled.');
-    // Page-context fetch inherits bilibili cookies and natural Referer.
-    const response = await chrome.tabs.sendMessage(tabId, {
-      type: 'FETCH_BINARY_FROM_PAGE',
-      url,
-    });
-    if (!response?.success || !response.base64) {
-      throw new Error(response?.error || 'Page-context media fetch failed.');
-    }
-    const binary = atob(response.base64);
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
-    if (onProgress) {
-      onProgress({
-        ratio: 1,
-        loadedBytes: bytes.byteLength,
-        totalBytes: bytes.byteLength,
-        speedBps: 0,
-        etaSeconds: 0,
-        indeterminate: false,
+
+    const chunkSize = CONFIG.rangeChunkBytes || (4 * 1024 * 1024);
+    const speedometer = createSpeedometer(CONFIG.speedSampleWindowMs || 1500);
+    const chunks = [];
+    let offset = 0;
+    let totalSize = 0;
+    let retriedInitial416 = false;
+
+    while (totalSize === 0 || offset < totalSize) {
+      if (signal?.aborted) throw new Error('Download cancelled.');
+
+      const rangeEnd = totalSize > 0
+        ? Math.min(totalSize - 1, offset + chunkSize - 1)
+        : offset + chunkSize - 1;
+      const requestedLength = rangeEnd - offset + 1;
+
+      const response = await chrome.tabs.sendMessage(tabId, {
+        type: 'FETCH_BINARY_FROM_PAGE',
+        url,
+        rangeStart: offset,
+        rangeEnd,
       });
+
+      if (!response?.success) {
+        throw new Error(response?.error || 'Page-context media fetch failed.');
+      }
+
+      const contentRange = parseContentRange(response.contentRange);
+      if (response.status === 416) {
+        if (offset === 0 && !retriedInitial416 && contentRange?.total > 0) {
+          retriedInitial416 = true;
+          totalSize = contentRange.total;
+          continue;
+        }
+        if (offset > 0 && totalSize === 0) break;
+        throw new Error('Media HTTP 416');
+      }
+
+      if (!response.base64 && response.byteLength !== 0) {
+        throw new Error('Page-context media fetch returned empty payload.');
+      }
+
+      const bytes = response.base64 ? base64ToUint8Array(response.base64) : new Uint8Array(0);
+      if (response.status === 200) {
+        if (offset > 0) throw new Error('Unexpected HTTP 200 for partial range');
+        chunks.push(bytes);
+        offset += bytes.byteLength;
+        totalSize = response.contentLength || offset;
+        break;
+      }
+
+      if (contentRange?.total > 0) {
+        totalSize = contentRange.total;
+      }
+      if (bytes.byteLength === 0) {
+        if (totalSize > 0 && offset < totalSize) {
+          throw new Error(`Empty page media chunk at byte ${offset}/${totalSize}`);
+        }
+        break;
+      }
+
+      chunks.push(bytes);
+      offset += bytes.byteLength;
+      speedometer.record(offset);
+      emitTransferProgress(onProgress, speedometer, offset, totalSize, false);
+
+      if (totalSize === 0 && bytes.byteLength < requestedLength) {
+        break;
+      }
     }
-    return bytes.buffer;
+
+    if (totalSize > 0 && offset < totalSize) {
+      throw new Error(`Incomplete media download: ${offset}/${totalSize}`);
+    }
+
+    emitTransferProgress(onProgress, speedometer, offset, totalSize || offset, true);
+    return concatArrayBuffers(chunks);
   }
 
   async function fetchBinary(url, onProgress, options) {
@@ -322,29 +610,28 @@
       console.warn(BRAND_CONFIG.logPrefix + ' Unable to install CDN header rules.', error);
     }
 
-    for (const candidate of candidates) {
-      if (signal?.aborted) throw new Error('Download cancelled.');
+    if (candidates.length > 0) {
       try {
-        return await fetchBinaryViaWorker(candidate, onProgress, signal);
+        return await fetchBinaryViaWorker(candidates, onProgress, signal);
       } catch (error) {
-        if (signal?.aborted || error.name === 'AbortError' || error.message?.includes('cancelled')) {
-          throw error;
+        if (isCancelledError(error, signal)) throw error;
+        if (Array.isArray(error.collectedErrors) && error.collectedErrors.length > 0) {
+          errors.push(...error.collectedErrors);
+        } else {
+          errors.push('worker:' + (error.message || error));
         }
-        errors.push('worker:' + (error.message || error));
       }
     }
 
-    // Fallback: page world fetch (correct Referer + cookies).
+    // Fallback: page world chunked Range fetch (natural bilibili Referer, credentials:'omit').
     if (tabId) {
       for (const candidate of candidates) {
         if (signal?.aborted) throw new Error('Download cancelled.');
         try {
           return await fetchBinaryViaPage(tabId, candidate, onProgress, signal);
         } catch (error) {
-          if (signal?.aborted || error.name === 'AbortError' || error.message?.includes('cancelled')) {
-            throw error;
-          }
-          errors.push('page:' + (error.message || error));
+          if (isCancelledError(error, signal)) throw error;
+          errors.push(`page[${hostOf(candidate)}]:${error.message || error}`);
         }
       }
     }
@@ -353,10 +640,11 @@
   }
 
   function concatArrayBuffers(chunks) {
-    const total = chunks.reduce((sum, chunk) => sum + chunk.byteLength, 0);
+    const views = chunks.map((chunk) => (chunk instanceof Uint8Array ? chunk : new Uint8Array(chunk)));
+    const total = views.reduce((sum, chunk) => sum + chunk.byteLength, 0);
     const output = new Uint8Array(total);
     let offset = 0;
-    chunks.forEach((chunk) => {
+    views.forEach((chunk) => {
       output.set(chunk, offset);
       offset += chunk.byteLength;
     });
@@ -605,12 +893,36 @@
     return p.select;
   }
 
+  async function ensureVideoIdentifiers(request, helpers) {
+    let aid = request.aid || null;
+    let cid = request.cid || null;
+    let title = request.title || '';
+
+    if ((!cid || !aid) && request.bvid && typeof helpers?.getVideoInfo === 'function') {
+      const info = await helpers.getVideoInfo(request.bvid, request.tabId || null);
+      if (info) {
+        aid = aid || info.aid || null;
+        const pages = Array.isArray(info.pages) ? info.pages : [];
+        const pIndex = Math.max(0, (Number(request.currentP) || 1) - 1);
+        cid = cid || pages[pIndex]?.cid || info.cid || null;
+        title = title || info.title || '';
+      }
+    }
+
+    if (!cid) {
+      throw new Error(`Missing video cid for ${request.bvid || 'unknown video'}.`);
+    }
+
+    return { ...request, aid, cid, title };
+  }
+
   async function resolveMediaOptions(request, helpers) {
+    const resolvedRequest = await ensureVideoIdentifiers(request, helpers);
     const { payload } = await resolveBestPayload(
       {
-        ...request,
-        modeId: request.modeId || CONFIG.defaultModeId,
-        qualityId: request.qualityId || CONFIG.autoQualityId,
+        ...resolvedRequest,
+        modeId: resolvedRequest.modeId || CONFIG.defaultModeId,
+        qualityId: resolvedRequest.qualityId || CONFIG.autoQualityId,
       },
       helpers.signWbi,
     );
@@ -646,7 +958,9 @@
         etaSeconds: null,
       }, true);
 
-      const { payload, strategyId } = await resolveBestPayload(request, helpers.signWbi);
+      const resolvedRequest = await ensureVideoIdentifiers(request, helpers);
+      controller.request = resolvedRequest;
+      const { payload, strategyId } = await resolveBestPayload(resolvedRequest, helpers.signWbi);
       if (controller.cancelled || abortController.signal.aborted) throw new Error('Download cancelled.');
 
       emitProgress(jobId, {
@@ -703,7 +1017,7 @@
         etaSeconds: 0,
       }, true);
 
-      const filename = buildFilename(request, mode, plan);
+      const filename = buildFilename(resolvedRequest, mode, plan);
       const saved = await saveBuffer(buffer, filename, mime);
 
       emitProgress(jobId, {
@@ -765,6 +1079,9 @@
     getActiveJobs,
     createSpeedometer,
     mapPhaseToPercent,
+    parseContentRange,
+    collectCandidateUrls,
+    fetchBinary,
     messageTypes: CONFIG.messages,
   });
 }(globalThis));

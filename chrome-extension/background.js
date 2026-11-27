@@ -295,6 +295,7 @@ async function handleFetchSubtitles({ bvid, aid, cid, tabId }) {
 
 const mediaHelpers = Object.freeze({
   signWbi,
+  getVideoInfo,
 });
 
 let creatingOffscreen = null;

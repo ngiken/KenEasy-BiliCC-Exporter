@@ -1,5 +1,15 @@
 # Changelog
 
+## 3.0.4 - 2026-11-27
+
+Bilibili CDN anti-leech (HTTP 567 / 403) recovery and SPA quality-picker reliability fix.
+
+- **Bounded Chunked Range Media Downloads**: Upgraded `media-download-service.js` to fetch Bilibili media streams in 4 MB bounded `Range: bytes=start-end` chunks with `Content-Range` total-size tracking, resolving Bilibili CDN HTTP `567` (`bilivideo.com`) and HTTP `403` (`akamaized.net`) rejections on unbounded whole-file GET requests.
+- **CDN Mirror Priority, Retry & Mid-Stream Failover**: Automatically prioritizes standard UPOS/Akamai mirrors ahead of PCDN/MCDN (`mcdn.bilivideo.cn`, `szbdyd.com`) while preserving all URLs as fallbacks, recovers from strict initial `HTTP 416` responses, retries transient chunk errors, and seamlessly resumes remaining byte ranges from backup mirrors on mid-stream drops.
+- **Fixed Page-Context Fallback (`page:Failed to fetch`)**: Switched CDN fetches in both the Service Worker and `content-main.js` to `credentials: 'omit'` and removed `cache: 'no-cache'`, eliminating CORS rejections on `Access-Control-Allow-Origin: *` mirrors and avoiding `OPTIONS` HTTP 567 preflight failures. Upgraded page fallback to 4 MB chunked `Range` transfers so large files never hit Chrome's 64 MB `sendMessage` ceiling.
+- **Fixed Quality Selector `playurl failed: 请求错误` on SPA Navigation**: Resolved the race condition where opening the popup after in-tab Bilibili navigation fired `RESOLVE_MEDIA_OPTIONS` with `cid: null` and overwrote valid quality lists. The popup now hydrates `aid`/`cid` via the active tab (`tabId`) first, guards quality updates with a monotonic request sequence token, respects multi-part `?p=N` pages, and auto-hydrates missing identifiers in the background service worker.
+- **Expanded Regression Suite**: Added unit and live-format tests for `Content-Range` parsing, PCDN deprioritization, multi-chunk reassembly with mid-stream failover, `416` recovery, and `cid=null` multi-part auto-hydration (42/42 passing).
+
 ## 3.0.3 - 2026-11-12
 
 Version single-source and release-hygiene patch.

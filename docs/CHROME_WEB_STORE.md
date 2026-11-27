@@ -1,23 +1,26 @@
-# Chrome Web Store Listing & Publish Guide (v3.0.0)
+# Chrome Web Store Listing & Publish Guide (v3.0.4)
 
-> Complete multi-language store listings and submission guidelines for **KenEasy BiliCC Exporter v3.0.0**.
+> Complete multi-language store listings and submission guidelines for **KenEasy BiliCC Exporter v3.0.4**.
 > Prepared for direct copy-pasting into the Google Chrome Web Store Developer Dashboard.
 
 ---
 
 ## 📦 1. Pre-Submission Checklist
 
-1. **Upload Asset**: Upload `dist/KenEasy-BiliCC-Exporter-v3.0.0.zip` (manifest.json at the archive root).
+1. **Upload Asset**: Upload `dist/KenEasy-BiliCC-Exporter-v3.0.4.zip` (`manifest.json` at the archive root).
 2. **Category**: `Productivity` or `Photos & Video / Tools`.
 3. **Privacy Policy URL**: `https://github.com/ngiken/KenEasy-BiliCC-Exporter/blob/main/PRIVACY.md`
 4. **Account Requirements**: None. Zero login required for core features.
-5. **Host Permissions Justification**:
-   - `https://*.bilibili.com/*`, `https://*.bilivideo.com/*`, `https://*.bilivideo.cn/*`: Required to parse video info, fetch official subtitle files, and download fragmented media streams for client-side muxing.
+5. **Permissions Changed Since v3.0.0?**: **No.** Exact same permissions and `host_permissions` — existing users will auto-update smoothly without a re-enable warning.
+6. **Host Permissions Justification**:
+   - `https://*.bilibili.com/*`, `https://*.bilivideo.com/*`, `https://*.bilivideo.cn/*`, `https://*.akamaized.net/*`: Required to parse video info, fetch official subtitle files, and download bounded-range media chunks for client-side muxing.
    - `activeTab`: Required to inspect the current active Bilibili video page when opening popup.
-   - `declarativeNetRequestWithHostAccess`: Required to safely append Bilibili Referer header to video chunk requests to bypass 403 anti-leech blocks.
+   - `declarativeNetRequestWithHostAccess`: Required to safely append Bilibili `Referer` header to video chunk requests to prevent 403/567 anti-leech blocks.
    - `downloads`: Required to write subtitle and MP4/M4A files directly to local disk.
    - `notifications`: Required to send desktop notifications when long background downloads complete.
    - `offscreen`: Required to perform in-browser demuxing and remuxing without blocking UI threads.
+
+> **Store Listing Update Note (v3.0.4)**: This release is a reliability & compatibility hotfix (Bilibili CDN 567/403 bounded-range download fix + SPA quality-picker fix) with no permission or UX scope changes. You do **not** need to rewrite the existing Chrome Web Store title, summary, or screenshots — simply upload `dist/KenEasy-BiliCC-Exporter-v3.0.4.zip` and submit.
 
 ---
 

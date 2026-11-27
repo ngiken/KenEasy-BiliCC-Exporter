@@ -80,15 +80,34 @@
     }
 
     if (event.data.type === MESSAGE_TYPES.binaryFetchRequest) {
-      const { requestId, url } = event.data;
+      const { requestId, url, rangeStart, rangeEnd } = event.data;
+      const headers = { Accept: '*/*' };
+      if (Number.isFinite(rangeStart) && Number.isFinite(rangeEnd) && rangeStart >= 0 && rangeEnd >= rangeStart) {
+        headers.Range = `bytes=${Math.floor(rangeStart)}-${Math.floor(rangeEnd)}`;
+      }
+      // Bilibili CDN URLs are query-signed (no cookies needed) and often return
+      // Access-Control-Allow-Origin: *, so credentials MUST be 'omit' to avoid CORS rejection.
+      // Avoid cache:'no-cache' to prevent non-safelisted Cache-Control preflight (OPTIONS -> 567).
       rawFetch(url, {
-        credentials: 'include',
-        cache: 'no-cache',
-        headers: {
-          Accept: '*/*',
-        },
+        credentials: 'omit',
+        headers,
       })
         .then(async (response) => {
+          const contentRange = response.headers.get('content-range') || '';
+          const contentLength = Number(response.headers.get('content-length') || 0);
+          if (response.status === 416) {
+            window.postMessage({
+              type: MESSAGE_TYPES.binaryFetchResponse,
+              requestId,
+              success: true,
+              status: 416,
+              contentRange,
+              contentLength: 0,
+              base64: '',
+              byteLength: 0,
+            }, '*');
+            return;
+          }
           if (!response.ok) throw new Error('Media HTTP ' + response.status);
           const blob = await response.blob();
           const reader = new FileReader();
@@ -99,6 +118,9 @@
               type: MESSAGE_TYPES.binaryFetchResponse,
               requestId,
               success: true,
+              status: response.status,
+              contentRange,
+              contentLength,
               base64,
               byteLength: blob.size,
             }, '*');

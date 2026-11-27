@@ -506,14 +506,20 @@ async function initActiveTab() {
     }
 
     showState('ready');
-    loadMediaOptions(video);
 
     if (!video.aid || !video.cid) {
-      hydrateVideoDetail(video.bvid);
+      hydrateVideoDetail(video.bvid, tab?.id || null, tab?.url || '');
+    } else {
+      loadMediaOptions(video);
     }
   } catch (error) {
     showError(error);
   }
+}
+
+function extractPageIndexFromUrl(url) {
+  const match = String(url || '').match(/[?&]p=(\d+)/i);
+  return match ? Math.max(1, Number(match[1]) || 1) : 1;
 }
 
 async function getActiveTab() {
@@ -541,26 +547,40 @@ async function getVideoInfoFromTab(tab) {
     aid: null,
     cid: null,
     pages: [],
-    currentP: 1,
+    currentP: extractPageIndexFromUrl(tab.url),
   };
 }
 
-async function hydrateVideoDetail(bvid) {
+async function hydrateVideoDetail(bvid, tabId = null, tabUrl = '') {
   try {
-    const response = await chrome.runtime.sendMessage({ type: 'FETCH_VIDEO_DETAIL', bvid });
-    if (!response?.success || !response.data || appState.video?.bvid !== bvid) return;
+    const activeTab = tabId ? { id: tabId, url: tabUrl } : await getActiveTab();
+    const response = await chrome.runtime.sendMessage({
+      type: 'FETCH_VIDEO_DETAIL',
+      bvid,
+      tabId: activeTab?.id || null,
+    });
+    if (!response?.success || !response.data || appState.video?.bvid !== bvid) {
+      // Even if detail hydration failed, let loadMediaOptions show a clear state / backend fallback.
+      if (appState.video?.bvid === bvid) loadMediaOptions(appState.video);
+      return;
+    }
 
+    const pages = response.data.pages || appState.video.pages || [];
+    const currentP = appState.video.currentP || extractPageIndexFromUrl(activeTab?.url);
+    const pageEntry = pages[currentP - 1] || pages[0] || null;
     appState.video = {
       ...appState.video,
       aid: response.data.aid,
-      cid: response.data.cid,
+      cid: pageEntry?.cid || response.data.cid,
       title: response.data.title || appState.video.title,
-      pages: response.data.pages || appState.video.pages,
+      pages,
+      currentP,
     };
     populateVideoCard(appState.video);
     loadMediaOptions(appState.video);
   } catch (error) {
     console.warn(`${BRAND_CONFIG.logPrefix} Video detail fallback failed.`, error);
+    if (appState.video?.bvid === bvid) loadMediaOptions(appState.video);
   }
 }
 
@@ -1055,12 +1075,15 @@ function showStatusToast(message, kind = 'info') {
   }, 3200);
 }
 
+let mediaOptionsRequestSeq = 0;
+
 async function loadMediaOptions(video) {
   const qualitySelect = document.getElementById('mediaQualitySelect');
   const modeSelect = document.getElementById('mediaModeSelect');
   const downloadBtn = document.getElementById('mediaDownloadBtn');
   if (!qualitySelect || !modeSelect || !video?.bvid) return;
 
+  const reqSeq = ++mediaOptionsRequestSeq;
   qualitySelect.disabled = true;
   modeSelect.disabled = true;
   if (downloadBtn) downloadBtn.disabled = true;
@@ -1073,10 +1096,13 @@ async function loadMediaOptions(video) {
       bvid: video.bvid,
       aid: video.aid || null,
       cid: video.cid || null,
+      currentP: video.currentP || extractPageIndexFromUrl(tab?.url),
       tabId: tab?.id || null,
       modeId: modeSelect.value || 'video_with_audio',
       qualityId: 'auto',
     });
+
+    if (reqSeq !== mediaOptionsRequestSeq) return;
 
     if (!response?.success || !response.data) {
       throw new Error(response?.error || t('mediaOptionsFailed'));
@@ -1096,6 +1122,7 @@ async function loadMediaOptions(video) {
     modeSelect.disabled = false;
     if (downloadBtn) downloadBtn.disabled = false;
   } catch (error) {
+    if (reqSeq !== mediaOptionsRequestSeq) return;
     console.warn(`${BRAND_CONFIG.logPrefix} Media options unavailable.`, error);
     appState.mediaOptions = null;
     fillSelect(qualitySelect, [{ id: 'auto', labelKey: 'qualityAuto' }], (item) => ({
@@ -1162,13 +1189,22 @@ async function downloadMedia() {
     const tab = await getActiveTab();
     let video = appState.video;
     if (!video.aid || !video.cid) {
-      const detail = await chrome.runtime.sendMessage({ type: 'FETCH_VIDEO_DETAIL', bvid: video.bvid });
+      const detail = await chrome.runtime.sendMessage({
+        type: 'FETCH_VIDEO_DETAIL',
+        bvid: video.bvid,
+        tabId: tab?.id || null,
+      });
       if (detail?.success && detail.data) {
+        const pages = detail.data.pages || video.pages || [];
+        const currentP = video.currentP || extractPageIndexFromUrl(tab?.url);
+        const pageEntry = pages[currentP - 1] || pages[0] || null;
         video = {
           ...video,
           aid: detail.data.aid,
-          cid: detail.data.cid || video.cid,
+          cid: pageEntry?.cid || detail.data.cid || video.cid,
           title: detail.data.title || video.title,
+          pages,
+          currentP,
         };
         appState.video = video;
       }
@@ -1180,6 +1216,7 @@ async function downloadMedia() {
       bvid: video.bvid,
       aid: video.aid || null,
       cid: video.cid || null,
+      currentP: video.currentP || extractPageIndexFromUrl(tab?.url),
       title: video.title || t('unknownTitle'),
       tabId: tab?.id || null,
       modeId: selectedMode,
@@ -1599,7 +1636,7 @@ function getExtensionVersion() {
   if (typeof chrome !== 'undefined' && chrome.runtime?.getManifest) {
     return chrome.runtime.getManifest().version;
   }
-  return '3.0.3';
+  return '3.0.4';
 }
 
 function t(key, substitutions = []) {
